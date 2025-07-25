@@ -44,11 +44,11 @@ app.use('/api/', apiLimiter);
 // CORS configuration
 const corsOptions = {
   origin: [
-    'http://localhost:5173', 
+    'http://localhost:5173',
     'http://localhost:3000', 
     'http://127.0.0.1:5173',
-    process.env.FRONTEND_URL
-  ].filter(Boolean),
+    'https://fusionx-nine.vercel.app'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
