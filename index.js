@@ -27,6 +27,9 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
+// Trust proxy for deployment behind reverse proxy
+app.set('trust proxy', 1);
+
 // Security middleware
 app.use(helmet());
 
@@ -44,9 +47,8 @@ const corsOptions = {
     'http://localhost:5173', 
     'http://localhost:3000', 
     'http://127.0.0.1:5173',
-    'https://your-frontend-domain.vercel.app',
-    'https://your-frontend-domain.netlify.app'
-  ],
+    process.env.FRONTEND_URL
+  ].filter(Boolean),
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
