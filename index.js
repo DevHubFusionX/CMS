@@ -20,6 +20,7 @@ const commentsRoutes = require('./routes/comments');
 const mediaRoutes = require('./routes/media');
 const settingsRoutes = require('./routes/settings');
 const analyticsRoutes = require('./routes/analytics');
+const aiRoutes = require('./routes/ai');
 
 // Load environment variables
 dotenv.config();
@@ -94,6 +95,7 @@ app.use('/api/comments', commentsRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
