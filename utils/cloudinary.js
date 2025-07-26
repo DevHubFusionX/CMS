@@ -11,18 +11,22 @@ cloudinary.config({
 console.log('✅ Cloudinary configured with environment variables');
 
 // Upload image to Cloudinary
-const uploadImage = async (file, folder = 'cms') => {
+const uploadImage = async (file, options = {}) => {
   try {
     console.log('Starting Cloudinary upload...');
     console.log('File type:', typeof file);
     console.log('File buffer length:', file?.length || 'No length property');
     
+    // Default options
+    const uploadOptions = {
+      folder: options.folder || 'cms',
+      resource_type: 'auto',
+      ...options
+    };
+    
     const result = await new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder,
-          resource_type: 'auto'
-        },
+        uploadOptions,
         (error, result) => {
           if (error) {
             console.error('Cloudinary upload error:', error);
