@@ -8,11 +8,8 @@ const connectDB = async (retries = 5) => {
   for (let i = 0; i < retries; i++) {
     try {
       const conn = await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/cms', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
         serverSelectionTimeoutMS: 30000, // 30 seconds
         socketTimeoutMS: 45000, // 45 seconds
-        bufferMaxEntries: 0,
         maxPoolSize: 10,
         minPoolSize: 5,
         maxIdleTimeMS: 30000,
