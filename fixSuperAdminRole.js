@@ -16,9 +16,9 @@ const fixSuperAdminRole = async () => {
     
     console.log('Update result:', result);
     
-    const user = await User.findOne({ email: 'superadmin@fusionx.com' });
+    const user = await User.findOne({ email: 'seradmin@fusionx.com' });
     console.log('Updated user:', user);
-    
+    up
     process.exit(0);
   } catch (error) {
     console.error('Error:', error);

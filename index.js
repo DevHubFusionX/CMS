@@ -48,7 +48,8 @@ const corsOptions = {
     'http://localhost:5173',
     'http://localhost:3000', 
     'http://127.0.0.1:5173',
-    'https://fusionx-nine.vercel.app'
+    'https://fusionx-nine.vercel.app',
+    'https://cms-2prb.onrender.com'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -60,6 +61,16 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle preflight requests
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Request timeout middleware
+app.use((req, res, next) => {
+  req.setTimeout(30000, () => {
+    const err = new Error('Request timeout');
+    err.statusCode = 408;
+    next(err);
+  });
+  next();
+});
 
 // Request logging middleware
 app.use((req, res, next) => {

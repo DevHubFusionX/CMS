@@ -75,8 +75,15 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check for user
-    const user = await User.findOne({ email }).select('+password').populate('role');
+    // Set timeout for database operations
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('Database operation timeout')), 25000);
+    });
+
+    // Check for user with timeout
+    const userPromise = User.findOne({ email }).select('+password').populate('role');
+    const user = await Promise.race([userPromise, timeoutPromise]);
+    
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -109,10 +116,18 @@ exports.login = async (req, res) => {
       }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Login error:', err);
+    
+    if (err.message === 'Database operation timeout') {
+      return res.status(504).json({
+        success: false,
+        message: 'Database connection timeout. Please try again.'
+      });
+    }
+    
     res.status(500).json({
       success: false,
-      message: 'Server error'
+      message: 'Server error. Please try again.'
     });
   }
 };
