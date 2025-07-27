@@ -182,13 +182,13 @@ exports.forgotPassword = async (req, res) => {
     
     console.log('✅ User found:', user.name, user.email);
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
-    // Hash token and set to resetPasswordToken field
+    // Hash OTP and set to resetPasswordToken field
     user.resetPasswordToken = crypto
       .createHash('sha256')
-      .update(resetToken)
+      .update(otp)
       .digest('hex');
 
     // Set expire time (10 minutes)
@@ -196,24 +196,22 @@ exports.forgotPassword = async (req, res) => {
 
     await user.save({ validateBeforeSave: false });
 
-    // Create reset URL
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
-
-    // Create HTML email template
+    // Create HTML email template with OTP
     const htmlMessage = `
     <!DOCTYPE html>
     <html>
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Password Reset Request</title>
+        <title>Password Reset OTP</title>
         <style>
             body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
             .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
             .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #e9ecef; }
             .logo { width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
             .content { padding: 30px 0; }
-            .button { display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .otp-box { background: #f8f9fa; border: 2px dashed #3b82f6; padding: 20px; border-radius: 10px; text-align: center; margin: 30px 0; }
+            .otp-code { font-size: 36px; font-weight: bold; color: #3b82f6; letter-spacing: 8px; font-family: monospace; }
             .footer { text-align: center; padding: 20px 0; border-top: 1px solid #e9ecef; color: #666; font-size: 14px; }
             .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
         </style>
@@ -226,31 +224,30 @@ exports.forgotPassword = async (req, res) => {
             </div>
             
             <div class="content">
-                <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+                <h2 style="color: #333; margin-bottom: 20px;">Password Reset OTP</h2>
                 
                 <p>Hello <strong>${user.name}</strong>,</p>
                 
                 <p>You are receiving this email because you (or someone else) has requested a password reset for your FusionX CMS account.</p>
                 
-                <p>Click the button below to reset your password:</p>
+                <p>Use the following One-Time Password (OTP) to reset your password:</p>
                 
-                <div style="text-align: center; margin: 30px 0;">
-                    <a href="${resetUrl}" class="button">Reset Password</a>
+                <div class="otp-box">
+                    <div class="otp-code">${otp}</div>
+                    <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">Enter this code on the reset password page</p>
                 </div>
-                
-                <p>Or copy and paste this link into your browser:</p>
-                <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace;">${resetUrl}</p>
                 
                 <div class="warning">
                     <strong>⚠️ Important:</strong>
                     <ul style="margin: 10px 0;">
-                        <li>This link will expire in <strong>10 minutes</strong></li>
+                        <li>This OTP will expire in <strong>10 minutes</strong></li>
+                        <li>Do not share this code with anyone</li>
                         <li>If you didn't request this reset, please ignore this email</li>
-                        <li>Your password will remain unchanged until you click the link above</li>
+                        <li>Your password will remain unchanged until you use this OTP</li>
                     </ul>
                 </div>
                 
-                <p>If you're having trouble clicking the button, you can also visit the link manually.</p>
+                <p>Go to the password reset page and enter this OTP along with your new password.</p>
             </div>
             
             <div class="footer">
@@ -268,8 +265,8 @@ exports.forgotPassword = async (req, res) => {
       
       await sendEmail({
         email: user.email,
-        subject: '🔐 Password Reset Request - FusionX CMS',
-        message: htmlMessage,
+        subject: '🔐 Password Reset OTP - FusionX CMS',
+        message: `Your password reset OTP is: ${otp}. This code will expire in 10 minutes.`,
         html: htmlMessage
       });
 
@@ -306,12 +303,19 @@ exports.forgotPassword = async (req, res) => {
 // @access  Public
 exports.resetPassword = async (req, res) => {
   try {
-    const { token, password } = req.body;
+    const { otp, password } = req.body;
 
-    // Hash token
+    if (!otp || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'OTP and new password are required'
+      });
+    }
+
+    // Hash OTP
     const resetPasswordToken = crypto
       .createHash('sha256')
-      .update(token)
+      .update(otp)
       .digest('hex');
 
     // Find user by token and check if token is expired
@@ -323,7 +327,7 @@ exports.resetPassword = async (req, res) => {
     if (!user) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid or expired token'
+        message: 'Invalid or expired OTP'
       });
     }
 
