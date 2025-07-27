@@ -24,15 +24,11 @@ exports.sendEmail = async (options) => {
   // Create transporter
   const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.gmass.co',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false, // Use STARTTLS
-    requireTLS: true,
+    port: process.env.SMTP_PORT || 587,
+    secure: process.env.SMTP_SECURE === 'true',
     auth: {
       user: process.env.SMTP_USER || 'gmass',
       pass: process.env.SMTP_PASSWORD || 'd5adc158-e907-43c0-9ae3-aa1c270265cd'
-    },
-    tls: {
-      rejectUnauthorized: false
     }
   });
 
