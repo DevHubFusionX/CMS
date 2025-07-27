@@ -14,7 +14,7 @@ exports.sendEmail = async (options) => {
     // Always create test account for development
     testAccount = await nodemailer.createTestAccount();
     
-    transporter = nodemailer.createTransporter({
+    transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
       secure: false,
