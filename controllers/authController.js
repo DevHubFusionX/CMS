@@ -261,7 +261,7 @@ exports.forgotPassword = async (req, res) => {
 
     try {
       console.log('📧 Attempting to send email to:', user.email);
-      console.log('📧 Reset URL:', resetUrl);
+      console.log('📧 Generated OTP:', otp);
       
       await sendEmail({
         email: user.email,
