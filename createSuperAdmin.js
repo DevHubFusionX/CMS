@@ -28,7 +28,7 @@ const createSuperAdmin = async () => {
     if (!superAdminRole) {
       console.error('Super admin role not found. Run npm run seed:roles first.');
       process.exit(1);
-    }
+    }a
     
     // Check if super admin already exists
     const existingAdmin = await User.findOne({ email: 'superadmin@fusionx.com' });

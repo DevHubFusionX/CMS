@@ -184,16 +184,77 @@ exports.forgotPassword = async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     // Create reset URL
-    const resetUrl = `${req.protocol}://${req.get('host')}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/reset-password/${resetToken}`;
 
-    // Create message
-    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please visit: \n\n ${resetUrl} \n\n This link will expire in 10 minutes.`;
+    // Create HTML email template
+    const htmlMessage = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Password Reset Request</title>
+        <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+            .header { text-align: center; padding: 20px 0; border-bottom: 2px solid #e9ecef; }
+            .logo { width: 60px; height: 60px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); border-radius: 15px; display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 24px; font-weight: bold; }
+            .content { padding: 30px 0; }
+            .button { display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #3b82f6, #8b5cf6); color: white; text-decoration: none; border-radius: 8px; font-weight: bold; margin: 20px 0; }
+            .footer { text-align: center; padding: 20px 0; border-top: 1px solid #e9ecef; color: #666; font-size: 14px; }
+            .warning { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <div class="logo">F</div>
+                <h1 style="margin: 10px 0 0 0; color: #333;">FusionX CMS</h1>
+            </div>
+            
+            <div class="content">
+                <h2 style="color: #333; margin-bottom: 20px;">Password Reset Request</h2>
+                
+                <p>Hello <strong>${user.name}</strong>,</p>
+                
+                <p>You are receiving this email because you (or someone else) has requested a password reset for your FusionX CMS account.</p>
+                
+                <p>Click the button below to reset your password:</p>
+                
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="${resetUrl}" class="button">Reset Password</a>
+                </div>
+                
+                <p>Or copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; background: #f8f9fa; padding: 10px; border-radius: 5px; font-family: monospace;">${resetUrl}</p>
+                
+                <div class="warning">
+                    <strong>⚠️ Important:</strong>
+                    <ul style="margin: 10px 0;">
+                        <li>This link will expire in <strong>10 minutes</strong></li>
+                        <li>If you didn't request this reset, please ignore this email</li>
+                        <li>Your password will remain unchanged until you click the link above</li>
+                    </ul>
+                </div>
+                
+                <p>If you're having trouble clicking the button, you can also visit the link manually.</p>
+            </div>
+            
+            <div class="footer">
+                <p>This email was sent from FusionX CMS</p>
+                <p>If you didn't request this password reset, please contact support immediately.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `;
 
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Password Reset Request',
-        message
+        subject: '🔐 Password Reset Request - FusionX CMS',
+        message: htmlMessage,
+        html: htmlMessage
       });
 
       res.status(200).json({

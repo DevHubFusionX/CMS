@@ -16,21 +16,22 @@ exports.sendEmail = async (options) => {
 
   // Create transporter
   const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+    host: process.env.SMTP_HOST || 'smtp.gmass.co',
     port: process.env.SMTP_PORT || 587,
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || (testAccount ? testAccount.user : ''),
-      pass: process.env.SMTP_PASSWORD || (testAccount ? testAccount.pass : '')
+      user: process.env.SMTP_USER || 'gmass',
+      pass: process.env.SMTP_PASSWORD || 'd5adc158-e907-43c0-9ae3-aa1c270265cd'
     }
   });
 
   // Define email options
   const mailOptions = {
-    from: process.env.FROM_EMAIL || 'noreply@cms.com',
+    from: process.env.FROM_EMAIL || 'FusionX CMS <noreply@fusionxcms.com>',
     to: options.email,
     subject: options.subject,
-    text: options.message
+    text: options.message,
+    html: options.html || options.message
   };
 
   // Send email
