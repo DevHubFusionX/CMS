@@ -157,17 +157,30 @@ exports.getMe = async (req, res) => {
 // @access  Public
 exports.forgotPassword = async (req, res) => {
   try {
+    console.log('🔄 Password reset request received for:', req.body.email);
     const { email } = req.body;
 
+    if (!email) {
+      console.log('❌ No email provided');
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
     // Find user by email
+    console.log('🔍 Searching for user with email:', email);
     const user = await User.findOne({ email });
     if (!user) {
+      console.log('❌ User not found for email:', email);
       // Return success even if user not found for security reasons
       return res.status(200).json({
         success: true,
         message: 'If your email is registered, you will receive a password reset link'
       });
     }
+    
+    console.log('✅ User found:', user.name, user.email);
 
     // Generate reset token
     const resetToken = crypto.randomBytes(20).toString('hex');
@@ -250,6 +263,9 @@ exports.forgotPassword = async (req, res) => {
     `;
 
     try {
+      console.log('📧 Attempting to send email to:', user.email);
+      console.log('📧 Reset URL:', resetUrl);
+      
       await sendEmail({
         email: user.email,
         subject: '🔐 Password Reset Request - FusionX CMS',
@@ -257,12 +273,15 @@ exports.forgotPassword = async (req, res) => {
         html: htmlMessage
       });
 
+      console.log('✅ Email sent successfully to:', user.email);
       res.status(200).json({
         success: true,
         message: 'Email sent'
       });
     } catch (err) {
-      console.error('Email error:', err);
+      console.error('❌ Email sending failed:', err.message);
+      console.error('❌ Full error:', err);
+      
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
 
@@ -270,7 +289,7 @@ exports.forgotPassword = async (req, res) => {
 
       return res.status(500).json({
         success: false,
-        message: 'Email could not be sent'
+        message: 'Email could not be sent: ' + err.message
       });
     }
   } catch (err) {

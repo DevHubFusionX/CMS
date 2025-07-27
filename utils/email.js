@@ -8,9 +8,16 @@ const nodemailer = require('nodemailer');
  * @param {string} options.message - Email message
  */
 exports.sendEmail = async (options) => {
+  console.log('📧 Email service called with:', {
+    to: options.email,
+    subject: options.subject,
+    hasHtml: !!options.html
+  });
+  
   // Create a test account if no SMTP settings are provided
   let testAccount;
   if (!process.env.SMTP_HOST) {
+    console.log('⚠️ No SMTP_HOST found, creating test account');
     testAccount = await nodemailer.createTestAccount();
   }
 
@@ -34,8 +41,17 @@ exports.sendEmail = async (options) => {
     html: options.html || options.message
   };
 
+  console.log('📧 SMTP Config:', {
+    host: process.env.SMTP_HOST || 'smtp.gmass.co',
+    port: process.env.SMTP_PORT || 587,
+    secure: process.env.SMTP_SECURE === 'true',
+    user: process.env.SMTP_USER || 'gmass'
+  });
+  
   // Send email
+  console.log('📧 Sending email...');
   const info = await transporter.sendMail(mailOptions);
+  console.log('✅ Email sent successfully:', info.messageId);
 
   // If using test account, log URL to view email
   if (testAccount) {
