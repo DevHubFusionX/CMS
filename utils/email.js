@@ -7,13 +7,24 @@ exports.sendEmail = async (options) => {
     hasHtml: !!options.html
   });
   
-  let testAccount;
   let transporter;
+  let isTestMode = false;
   
-  try {
-    // Always create test account for development
-    testAccount = await nodemailer.createTestAccount();
-    
+  if (process.env.SMTP_USER && process.env.SMTP_PASSWORD) {
+    // Use real SMTP
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: process.env.SMTP_PORT,
+      secure: process.env.SMTP_SECURE === 'true',
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASSWORD
+      }
+    });
+    console.log('📧 Using real SMTP:', process.env.SMTP_HOST);
+  } else {
+    // Fallback to test account
+    const testAccount = await nodemailer.createTestAccount();
     transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
       port: 587,
@@ -23,11 +34,8 @@ exports.sendEmail = async (options) => {
         pass: testAccount.pass
       }
     });
-    
-    console.log('📧 Using Ethereal test account:', testAccount.user);
-  } catch (error) {
-    console.log('❌ Failed to create test account:', error.message);
-    throw new Error('Email service unavailable');
+    isTestMode = true;
+    console.log('📧 Using test account:', testAccount.user);
   }
 
   const mailOptions = {
@@ -41,7 +49,10 @@ exports.sendEmail = async (options) => {
   console.log('📧 Sending email...');
   const info = await transporter.sendMail(mailOptions);
   console.log('✅ Email sent successfully:', info.messageId);
-  console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
+  
+  if (isTestMode) {
+    console.log('📧 Preview URL:', nodemailer.getTestMessageUrl(info));
+  }
 
   return info;
 };
