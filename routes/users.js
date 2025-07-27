@@ -72,7 +72,8 @@ router.post('/', protect, authorize('admin', 'super_admin'), async (req, res) =>
     
     const user = await User.create(req.body);
     
-    // Remove password from response
+    // Populate role and remove password from response
+    await user.populate('role');
     user.password = undefined;
 
     res.status(201).json({
@@ -102,7 +103,7 @@ router.post('/', protect, authorize('admin', 'super_admin'), async (req, res) =>
 // @access  Private (Admin only)
 router.get('/', protect, authorize('admin', 'super_admin'), async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select('-password').populate('role');
 
     res.status(200).json({
       success: true,
@@ -123,7 +124,7 @@ router.get('/', protect, authorize('admin', 'super_admin'), async (req, res) => 
 // @access  Private (Admin or own user)
 router.get('/:id', protect, async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await User.findById(req.params.id).select('-password').populate('role');
 
     if (!user) {
       return res.status(404).json({
@@ -190,7 +191,7 @@ router.put('/:id', protect, async (req, res) => {
     const user = await User.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
-    }).select('-password');
+    }).select('-password').populate('role');
 
     if (!user) {
       return res.status(404).json({
