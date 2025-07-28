@@ -39,13 +39,26 @@ app.set('trust proxy', 1);
 // Security middleware
 app.use(helmet());
 
-// Rate limiting
-const apiLimiter = rateLimit({
+// Rate limiting with different tiers
+const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
-  message: 'Too many requests from this IP, please try again later'
+  max: 100,
+  message: { success: false, message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
 });
-app.use('/api/', apiLimiter);
+
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,
+  message: { success: false, message: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false
+});
+
+app.use('/api/', generalLimiter);
+app.use('/api/auth', strictLimiter);
+app.use('/api/media', strictLimiter);
 
 // CORS configuration
 const getAllowedOrigins = () => {
@@ -94,8 +107,40 @@ const corsOptions = {
 // Standard middleware
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle preflight requests
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ 
+  limit: '10mb',
+  verify: (req, res, buf) => {
+    try {
+      JSON.parse(buf);
+    } catch (e) {
+      res.status(400).json({ success: false, message: 'Invalid JSON' });
+      throw new Error('Invalid JSON');
+    }
+  }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Input sanitization middleware
+app.use((req, res, next) => {
+  // Remove null bytes and control characters
+  const sanitize = (obj) => {
+    if (typeof obj === 'string') {
+      return obj.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    }
+    if (typeof obj === 'object' && obj !== null) {
+      for (let key in obj) {
+        obj[key] = sanitize(obj[key]);
+      }
+    }
+    return obj;
+  };
+  
+  if (req.body) req.body = sanitize(req.body);
+  if (req.query) req.query = sanitize(req.query);
+  if (req.params) req.params = sanitize(req.params);
+  
+  next();
+});
 
 // JWT-based CSRF protection
 const jwt = require('jsonwebtoken');
@@ -203,15 +248,31 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
-// Error handling middleware
+// Secure error handling middleware
 app.use((err, req, res, next) => {
+  // Log full error details server-side only
   logger.error(`${err.name}: ${err.message}\n${err.stack}`);
   
-  // Send appropriate error response
   const statusCode = err.statusCode || 500;
+  
+  // Generic error messages for production
+  const errorMessages = {
+    400: 'Bad Request',
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not Found',
+    429: 'Too Many Requests',
+    500: 'Internal Server Error'
+  };
+  
+  const message = process.env.NODE_ENV === 'production' 
+    ? errorMessages[statusCode] || 'An error occurred'
+    : err.message;
+  
   res.status(statusCode).json({ 
-    message: statusCode === 500 ? 'Something went wrong!' : err.message,
-    error: process.env.NODE_ENV === 'development' ? err.stack : undefined
+    success: false,
+    message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
   });
 });
 
