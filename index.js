@@ -97,11 +97,16 @@ app.options('*', cors(corsOptions)); // Handle preflight requests
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Simple CSRF protection middleware
-const csrfTokens = new Map();
+// JWT-based CSRF protection
+const jwt = require('jsonwebtoken');
 
 const generateCSRFToken = () => {
-  return crypto.randomBytes(32).toString('hex');
+  const payload = {
+    type: 'csrf',
+    timestamp: Date.now(),
+    random: crypto.randomBytes(16).toString('hex')
+  };
+  return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 };
 
 const csrfProtection = (req, res, next) => {
@@ -110,39 +115,35 @@ const csrfProtection = (req, res, next) => {
   }
   
   const token = req.headers['x-csrf-token'];
-  const userAgent = req.headers['user-agent'] || '';
-  const ip = req.ip || req.connection.remoteAddress;
-  const key = `${ip}-${userAgent}`;
   
-  if (!token || !csrfTokens.has(key) || csrfTokens.get(key) !== token) {
+  if (!token) {
+    return res.status(403).json({
+      success: false,
+      message: 'CSRF token required'
+    });
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.type !== 'csrf') {
+      throw new Error('Invalid token type');
+    }
+    next();
+  } catch (error) {
     return res.status(403).json({
       success: false,
       message: 'Invalid CSRF token'
     });
   }
-  
-  next();
 };
 
 // CSRF token endpoint
 app.get('/api/csrf-token', (req, res) => {
   const token = generateCSRFToken();
-  const userAgent = req.headers['user-agent'] || '';
-  const ip = req.ip || req.connection.remoteAddress;
-  const key = `${ip}-${userAgent}`;
-  
-  csrfTokens.set(key, token);
-  
-  // Clean up old tokens (keep only last 1000)
-  if (csrfTokens.size > 1000) {
-    const firstKey = csrfTokens.keys().next().value;
-    csrfTokens.delete(firstKey);
-  }
-  
   res.json({ csrfToken: token });
 });
 
-// Apply CSRF to state-changing routes only
+// Apply CSRF protection to state-changing routes
 app.use('/api/posts', csrfProtection);
 app.use('/api/users', csrfProtection);
 app.use('/api/media', csrfProtection);
