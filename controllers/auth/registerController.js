@@ -1,6 +1,7 @@
 const User = require('../../models/User');
 const Role = require('../../models/Role');
 const { sendEmail } = require('../../utils/email');
+const { renderEmailVerificationOTP } = require('../../utils/emailTemplates');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -52,19 +53,8 @@ exports.register = async (req, res) => {
     const otp = user.generateEmailOTP();
     await user.save();
 
-    // Email content
-    const message = `
-      <h2>Welcome to FusionX CMS!</h2>
-      <p>Hi ${name},</p>
-      <p>Thank you for registering with FusionX CMS. Please use the following OTP to verify your email address:</p>
-      <div style="text-align: center; margin: 20px 0;">
-        <span style="display: inline-block; padding: 15px 30px; background-color: #3B82F6; color: white; font-size: 24px; font-weight: bold; letter-spacing: 3px; border-radius: 8px;">${otp}</span>
-      </div>
-      <p>This OTP will expire in 10 minutes.</p>
-      <p>If you didn't create this account, please ignore this email.</p>
-      <br>
-      <p>Best regards,<br>The FusionX CMS Team</p>
-    `;
+    // Email content using template
+    const message = renderEmailVerificationOTP(name, otp);
 
     try {
       await sendEmail({
