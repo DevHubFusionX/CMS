@@ -2,7 +2,7 @@ const nodemailer = require('nodemailer');
 
 exports.sendEmail = async (options) => {
   console.log('📧 Email service called with:', {
-    to: options.email,
+    to: options.to || options.email,
     subject: options.subject,
     hasHtml: !!options.html
   });
@@ -19,7 +19,7 @@ exports.sendEmail = async (options) => {
 
   const mailOptions = {
     from: process.env.FROM_EMAIL,
-    to: options.email,
+    to: options.to || options.email,
     subject: options.subject,
     text: options.message,
     html: options.html || options.message
