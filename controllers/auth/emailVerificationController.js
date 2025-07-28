@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const { renderEmailVerificationOTP } = require('../../utils/emailTemplates');
 
 // @desc    Verify email with OTP
 // @route   POST /api/auth/verify-otp
@@ -65,18 +66,8 @@ exports.resendVerification = async (req, res) => {
     const otp = user.generateEmailOTP();
     await user.save();
 
-    // Email content
-    const message = `
-      <h2>Email Verification - FusionX CMS</h2>
-      <p>Hi ${user.name},</p>
-      <p>Please use the following OTP to verify your email address:</p>
-      <div style="text-align: center; margin: 20px 0;">
-        <span style="display: inline-block; padding: 15px 30px; background-color: #3B82F6; color: white; font-size: 24px; font-weight: bold; letter-spacing: 3px; border-radius: 8px;">${otp}</span>
-      </div>
-      <p>This OTP will expire in 10 minutes.</p>
-      <br>
-      <p>Best regards,<br>The FusionX CMS Team</p>
-    `;
+    // Email content using template
+    const message = renderEmailVerificationOTP(user.name, otp);
 
     const { sendEmail } = require('../../utils/email');
     await sendEmail({
