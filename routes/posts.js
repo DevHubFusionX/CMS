@@ -406,9 +406,9 @@ router.post('/', protect, authorize('contributor', 'author', 'editor', 'admin', 
     // Populate post data for notification
     await post.populate('author', 'name avatar');
     
-    // Emit notification to editors when a new post is created
+    // Emit notification to editors when an author creates a post
     const io = req.app.get('io');
-    if (io) {
+    if (io && ['author', 'contributor'].includes(userRole)) {
       io.to('editor').to('admin').to('super_admin').emit('new_post_created', {
         id: post._id,
         title: post.title,

@@ -1,6 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
@@ -301,9 +302,12 @@ io.on('connection', (socket) => {
   logger.info(`User connected: ${socket.id}`);
   
   // Join room based on user role
-  socket.on('join_role', (role) => {
+  socket.on('join_role', (data) => {
+    const { role, userId } = data;
     socket.join(role);
-    logger.info(`User ${socket.id} joined ${role} room`);
+    socket.userId = userId;
+    socket.userRole = role;
+    logger.info(`User ${socket.id} (${userId}) joined ${role} room`);
   });
   
   socket.on('disconnect', () => {
