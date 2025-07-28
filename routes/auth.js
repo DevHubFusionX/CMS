@@ -3,7 +3,10 @@ const router = express.Router();
 const { protect } = require('../middleware/auth');
 const authController = require('../controllers/authController');
 
-// Registration disabled - Admin only user creation
+// @route   POST /api/auth/register
+// @desc    Register user (Author and Subscriber only)
+// @access  Public
+router.post('/register', authController.register);
 
 // @route   POST /api/auth/login
 // @desc    Login user

@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const Role = require('../../models/Role');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -6,6 +7,17 @@ const User = require('../../models/User');
 exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
+
+    // Validate allowed roles
+    const allowedRoles = ['author', 'subscriber'];
+    const selectedRole = role || 'subscriber';
+    
+    if (!allowedRoles.includes(selectedRole)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Only Author and Subscriber roles are allowed for registration'
+      });
+    }
 
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -16,13 +28,26 @@ exports.register = async (req, res) => {
       });
     }
 
+    // Get role ObjectId
+    const roleDoc = await Role.findOne({ name: selectedRole });
+    if (!roleDoc) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role specified'
+      });
+    }
+
     // Create user
     const user = await User.create({
       name,
       email,
       password,
-      legacyRole: role || 'subscriber'
+      role: roleDoc._id,
+      legacyRole: selectedRole
     });
+
+    // Populate role for response
+    await user.populate('role');
 
     // Generate token
     const token = user.getSignedJwtToken();
