@@ -1,5 +1,7 @@
 const User = require('../../models/User');
 const Role = require('../../models/Role');
+const { sendEmail } = require('../../utils/email');
+const { renderEmailVerificationOTP } = require('../../utils/emailTemplates');
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -43,9 +45,24 @@ exports.login = async (req, res) => {
 
     // Check if email is verified (only for new registrations)
     if (!user.isEmailVerified) {
+      // Generate and send new OTP
+      const otp = user.generateEmailOTP();
+      await user.save();
+      
+      try {
+        const message = renderEmailVerificationOTP(user.name, otp);
+        await sendEmail({
+          to: user.email,
+          subject: 'Your FusionX CMS Verification Code',
+          html: message
+        });
+      } catch (emailError) {
+        console.error('Failed to send verification email:', emailError);
+      }
+      
       return res.status(401).json({
         success: false,
-        message: 'Please verify your email address to complete registration',
+        message: 'Please verify your email address. A new verification code has been sent to your email.',
         needsVerification: true,
         email: user.email
       });

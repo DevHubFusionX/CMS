@@ -72,7 +72,7 @@ exports.resendVerification = async (req, res) => {
     const { sendEmail } = require('../../utils/email');
     await sendEmail({
       to: user.email,
-      subject: 'Verify Your Email - FusionX CMS',
+      subject: 'Your FusionX CMS Verification Code',
       html: message
     });
 

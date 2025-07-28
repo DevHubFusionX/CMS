@@ -14,15 +14,25 @@ exports.sendEmail = async (options) => {
     auth: {
       user: process.env.EMAIL_USER,
       pass: process.env.EMAIL_PASS
+    },
+    tls: {
+      rejectUnauthorized: false
     }
   });
 
+  const stripHtml = (html) => html.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+
   const mailOptions = {
-    from: process.env.FROM_EMAIL,
+    from: `"FusionX CMS" <${process.env.EMAIL_USER}>`,
     to: options.to || options.email,
     subject: options.subject,
-    text: options.message,
-    html: options.html || options.message
+    text: options.text || stripHtml(options.html || options.message || ''),
+    html: options.html || options.message,
+    headers: {
+      'X-Mailer': 'FusionX CMS',
+      'X-Priority': '3',
+      'List-Unsubscribe': '<mailto:unsubscribe@fusionxcms.com>'
+    }
   };
   
   console.log('📧 Using Gmail SMTP:', process.env.EMAIL_HOST);
