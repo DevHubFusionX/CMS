@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 const User = require('../../models/User');
-const sendEmail = require('../../utils/email');
+const { sendEmail } = require('../../utils/email');
 
 // @desc    Forgot password - send reset email
 // @route   POST /api/auth/forgot-password
