@@ -71,10 +71,17 @@ const corsOptions = {
       return callback(null, true);
     }
     
+    // Temporary: Allow Vercel app directly
+    if (origin === 'https://fusionx-nine.vercel.app') {
+      return callback(null, true);
+    }
+    
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.log(`CORS blocked origin: ${origin}`);
+      console.log('ENV ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
+      console.log('Parsed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
