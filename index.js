@@ -298,6 +298,7 @@ app.use((req, res) => {
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
+  console.log(`👤 User connected: ${socket.id}`);
   logger.info(`User connected: ${socket.id}`);
   
   // Join room based on user role
@@ -306,10 +307,15 @@ io.on('connection', (socket) => {
     socket.join(role);
     socket.userId = userId;
     socket.userRole = role;
+    
+    console.log(`🏠 User ${socket.id} (${userId}) joined ${role} room`);
+    console.log(`📊 Room ${role} now has ${io.sockets.adapter.rooms.get(role)?.size || 0} members`);
+    
     logger.info(`User ${socket.id} (${userId}) joined ${role} room`);
   });
   
   socket.on('disconnect', () => {
+    console.log(`👋 User disconnected: ${socket.id}`);
     logger.info(`User disconnected: ${socket.id}`);
   });
 });
