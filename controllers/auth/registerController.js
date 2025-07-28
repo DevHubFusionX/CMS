@@ -36,13 +36,18 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Check if user exists
+    // Check if user exists (including any potential stale data)
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).json({
-        success: false,
-        message: 'User already exists'
-      });
+      // If user exists but is not email verified, allow re-registration
+      if (!existingUser.isEmailVerified) {
+        await User.findByIdAndDelete(existingUser._id);
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'User already exists with this email address'
+        });
+      }
     }
 
     // Get role ObjectId

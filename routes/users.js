@@ -228,14 +228,28 @@ router.delete('/:id', protect, authorize('admin', 'super_admin'), async (req, re
       });
     }
 
+    // Prevent deletion of super admin
+    if (user.legacyRole === 'super_admin') {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete super admin user'
+      });
+    }
+
+    // Delete user and ensure cleanup
     await User.findByIdAndDelete(req.params.id);
+    
+    // Force cleanup of any potential index issues
+    await User.collection.dropIndexes().catch(() => {});
+    await User.collection.createIndex({ email: 1 }, { unique: true }).catch(() => {});
 
     res.status(200).json({
       success: true,
+      message: 'User deleted successfully',
       data: {}
     });
   } catch (err) {
-    console.error(err);
+    console.error('User deletion error:', err);
     res.status(500).json({
       success: false,
       message: 'Server error'
