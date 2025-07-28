@@ -68,7 +68,7 @@ exports.register = async (req, res) => {
 
     try {
       await sendEmail({
-        to: email,
+        to: user.email,
         subject: 'Verify Your Email - FusionX CMS',
         html: message
       });
