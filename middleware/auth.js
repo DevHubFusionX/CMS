@@ -40,7 +40,7 @@ exports.protect = async (req, res, next) => {
 
 // Grant access to specific roles
 exports.authorize = (...roles) => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     // Allow visitor access for public routes
     if (roles.includes('visitor') && !req.user) {
       return next();
@@ -53,27 +53,42 @@ exports.authorize = (...roles) => {
       });
     }
     
-    // Get the actual role string (use legacyRole if role is ObjectId)
-    const userRole = req.user.legacyRole || req.user.role?.name || req.user.role;
-    
-    // Super admin has access to everything
-    if (userRole === 'super_admin') {
-      return next();
-    }
-    
-    if (!roles.includes(userRole)) {
-      return res.status(403).json({
+    try {
+      // Get user with populated role
+      const user = await User.findById(req.user.id || req.user._id).populate('role');
+      if (!user || !user.role) {
+        return res.status(403).json({
+          success: false,
+          message: 'No role assigned'
+        });
+      }
+      
+      const userRole = user.role.name;
+      
+      // Super admin has access to everything
+      if (userRole === 'super_admin') {
+        return next();
+      }
+      
+      if (!roles.includes(userRole)) {
+        return res.status(403).json({
+          success: false,
+          message: `User role ${userRole} is not authorized to access this route`
+        });
+      }
+      next();
+    } catch (error) {
+      return res.status(500).json({
         success: false,
-        message: `User role ${userRole} is not authorized to access this route`
+        message: 'Authorization error'
       });
     }
-    next();
   };
 };
 
 // Check if user owns the resource
 exports.checkOwnership = (resourceField = 'author') => {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
         success: false,
@@ -81,21 +96,36 @@ exports.checkOwnership = (resourceField = 'author') => {
       });
     }
     
-    const userRole = req.user.legacyRole || req.user.role?.name || req.user.role;
-    
-    // Admin and super_admin can access everything
-    if (userRole === 'admin' || userRole === 'super_admin') {
-      return next();
-    }
-    
-    // Check ownership for other roles
-    if (req.resource && req.resource[resourceField] && req.resource[resourceField].toString() !== req.user._id.toString()) {
-      return res.status(403).json({
+    try {
+      const user = await User.findById(req.user.id || req.user._id).populate('role');
+      if (!user || !user.role) {
+        return res.status(403).json({
+          success: false,
+          message: 'No role assigned'
+        });
+      }
+      
+      const userRole = user.role.name;
+      
+      // Admin and super_admin can access everything
+      if (userRole === 'admin' || userRole === 'super_admin') {
+        return next();
+      }
+      
+      // Check ownership for other roles
+      if (req.resource && req.resource[resourceField] && req.resource[resourceField].toString() !== req.user._id.toString()) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied. You can only access your own resources.'
+        });
+      }
+      
+      next();
+    } catch (error) {
+      return res.status(500).json({
         success: false,
-        message: 'Access denied. You can only access your own resources.'
+        message: 'Authorization error'
       });
     }
-    
-    next();
   };
 };

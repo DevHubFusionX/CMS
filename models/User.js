@@ -21,7 +21,14 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Please add a password'],
-    minlength: 6,
+    minlength: [8, 'Password must be at least 8 characters'],
+    validate: {
+      validator: function(password) {
+        // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
+        return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
+      },
+      message: 'Password must contain at least 8 characters with uppercase, lowercase, number and special character'
+    },
     select: false
   },
   role: {
@@ -77,7 +84,7 @@ UserSchema.pre('save', async function(next) {
 // Sign JWT and return
 UserSchema.methods.getSignedJwtToken = function() {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
-    expiresIn: '1d'
+    expiresIn: process.env.JWT_EXPIRE || '1d'
   });
 };
 

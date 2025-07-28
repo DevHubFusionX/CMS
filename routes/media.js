@@ -9,40 +9,48 @@ const { uploadImage, deleteImage } = require('../utils/cloudinary');
 // Set up multer for memory storage (Cloudinary)
 const storage = multer.memoryStorage();
 
-// File filter
+// File filter with enhanced security
 const fileFilter = (req, file, cb) => {
-  // Accept images, videos, and documents
-  const allowedTypes = /jpeg|jpg|png|gif|webp|mp4|pdf|doc|docx|xls|xlsx|ppt|pptx/;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  // Strict whitelist of allowed file types
+  const allowedMimeTypes = {
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/gif': ['.gif'],
+    'image/webp': ['.webp'],
+    'application/pdf': ['.pdf']
+  };
   
-  // Check mimetype more flexibly
-  const allowedMimeTypes = [
-    'image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp',
-    'video/mp4',
-    'application/pdf',
-    'application/msword',
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'application/vnd.ms-excel',
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-powerpoint',
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-  ];
+  const mimetype = file.mimetype.toLowerCase();
+  const extension = path.extname(file.originalname).toLowerCase();
   
-  const mimetypeAllowed = allowedMimeTypes.includes(file.mimetype);
-
-  if (extname && mimetypeAllowed) {
-    return cb(null, true);
-  } else {
-    console.log(`File rejected: ${file.originalname}, mimetype: ${file.mimetype}, extension: ${path.extname(file.originalname)}`);
-    cb(new Error(`File type not supported: ${file.mimetype}`), false);
+  // Check if mimetype is allowed
+  if (!allowedMimeTypes[mimetype]) {
+    return cb(new Error(`File type not allowed: ${mimetype}`), false);
   }
+  
+  // Check if extension matches mimetype
+  if (!allowedMimeTypes[mimetype].includes(extension)) {
+    return cb(new Error(`File extension ${extension} doesn't match mimetype ${mimetype}`), false);
+  }
+  
+  // Additional security checks
+  if (file.originalname.includes('..') || file.originalname.includes('/') || file.originalname.includes('\\')) {
+    return cb(new Error('Invalid filename'), false);
+  }
+  
+  cb(null, true);
 };
 
-// Initialize upload
+// Initialize upload with stricter limits
 const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  limits: { 
+    fileSize: 5 * 1024 * 1024, // 5MB limit (reduced from 10MB)
+    files: 1, // Only 1 file per request
+    fieldNameSize: 100, // Limit field name size
+    fieldSize: 1024 * 1024 // 1MB field size limit
+  }
 });
 
 // Multer error handling middleware
@@ -51,7 +59,7 @@ const handleMulterError = (err, req, res, next) => {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({
         success: false,
-        message: 'File too large. Maximum size is 10MB.'
+        message: 'File too large. Maximum size is 5MB.'
       });
     }
     if (err.code === 'LIMIT_UNEXPECTED_FILE') {

@@ -10,6 +10,21 @@ exports.register = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
+    // Validate password strength
+    if (!password || password.length < 8) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 8 characters long'
+      });
+    }
+    
+    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must contain at least one uppercase letter, lowercase letter, number, and special character'
+      });
+    }
+
     // Validate allowed roles
     const allowedRoles = ['author', 'subscriber'];
     const selectedRole = role || 'subscriber';
