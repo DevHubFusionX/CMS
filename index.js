@@ -6,6 +6,8 @@ const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const crypto = require('crypto');
+const { createServer } = require('http');
+const { Server } = require('socket.io');
 
 // Import utilities
 const logger = require('./utils/logger');
@@ -30,8 +32,9 @@ const aiRoutes = require('./routes/ai');
 // Load environment variables
 dotenv.config();
 
-// Initialize express app
+// Initialize express app and HTTP server
 const app = express();
+const server = createServer(app);
 
 // Trust proxy for deployment behind reverse proxy
 app.set('trust proxy', 1);
@@ -71,6 +74,18 @@ const getAllowedOrigins = () => {
   const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
   return [...baseOrigins, ...envOrigins];
 };
+
+// Initialize Socket.IO after getAllowedOrigins is defined
+const io = new Server(server, {
+  cors: {
+    origin: getAllowedOrigins(),
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
+
+// Make io available globally
+app.set('io', io);
 
 const corsOptions = {
   origin: (origin, callback) => {
@@ -281,9 +296,24 @@ app.use((req, res) => {
   res.status(404).json({ message: 'Resource not found' });
 });
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  logger.info(`User connected: ${socket.id}`);
+  
+  // Join room based on user role
+  socket.on('join_role', (role) => {
+    socket.join(role);
+    logger.info(`User ${socket.id} joined ${role} room`);
+  });
+  
+  socket.on('disconnect', () => {
+    logger.info(`User disconnected: ${socket.id}`);
+  });
+});
+
 // Start server
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   logger.info(`Server running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 });
