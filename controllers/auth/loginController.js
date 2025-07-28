@@ -21,7 +21,7 @@ exports.login = async (req, res) => {
     });
 
     // Check for user with timeout
-    const userPromise = User.findOne({ email }).select('+password').populate('role');
+    const userPromise = User.findOne({ email }).select('+password');
     const user = await Promise.race([userPromise, timeoutPromise]);
     
     if (!user) {
