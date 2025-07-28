@@ -10,6 +10,10 @@ const rateLimit = require('express-rate-limit');
 const logger = require('./utils/logger');
 const { initScheduledTasks } = require('./utils/scheduledTasks');
 
+// Import models to ensure they're registered
+require('./models/Role');
+require('./models/User');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const postsRoutes = require('./routes/posts');

@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const User = require('../models/User');
+const Role = require('../models/Role');
 const { protect, authorize } = require('../middleware/auth');
 const { uploadImage } = require('../utils/cloudinary');
 

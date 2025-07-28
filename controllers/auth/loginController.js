@@ -1,4 +1,5 @@
 const User = require('../../models/User');
+const Role = require('../../models/Role');
 
 // @desc    Login user
 // @route   POST /api/auth/login
@@ -21,7 +22,7 @@ exports.login = async (req, res) => {
     });
 
     // Check for user with timeout
-    const userPromise = User.findOne({ email }).select('+password');
+    const userPromise = User.findOne({ email }).select('+password').populate('role');
     const user = await Promise.race([userPromise, timeoutPromise]);
     
     if (!user) {
