@@ -47,22 +47,34 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// CORS configuration with environment-based origins
+// CORS configuration
 const getAllowedOrigins = () => {
-  const baseOrigins = ['http://localhost:5173', 'http://localhost:3000'];
-  const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+  const baseOrigins = [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:3000'
+  ];
+  const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
   return [...baseOrigins, ...envOrigins];
 };
 
 const corsOptions = {
   origin: (origin, callback) => {
     const allowedOrigins = getAllowedOrigins();
-    // Allow requests with no origin (mobile apps, etc.)
+    
+    // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
+    
+    // Allow localhost in development
+    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
+      return callback(null, true);
+    }
     
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },
