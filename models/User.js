@@ -47,6 +47,12 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationOTP: String,
+  emailVerificationExpire: Date,
   lastLogin: {
     type: Date
   },
@@ -78,6 +84,16 @@ UserSchema.methods.getSignedJwtToken = function() {
 // Match user entered password to hashed password in database
 UserSchema.methods.matchPassword = async function(enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+// Generate email verification OTP
+UserSchema.methods.generateEmailOTP = function() {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
+  
+  this.emailVerificationOTP = otp;
+  this.emailVerificationExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  
+  return otp;
 };
 
 module.exports = mongoose.model('User', UserSchema);

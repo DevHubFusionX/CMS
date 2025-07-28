@@ -1,5 +1,6 @@
 const User = require('../../models/User');
 const Role = require('../../models/Role');
+const { sendEmail } = require('../../utils/email');
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -37,33 +38,56 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Create user
+    // Create user (not verified yet)
     const user = await User.create({
       name,
       email,
       password,
       role: roleDoc._id,
-      legacyRole: selectedRole
+      legacyRole: selectedRole,
+      isEmailVerified: false
     });
 
-    // Populate role for response
-    await user.populate('role');
+    // Generate email verification OTP
+    const otp = user.generateEmailOTP();
+    await user.save();
 
-    // Generate token
-    const token = user.getSignedJwtToken();
+    // Email content
+    const message = `
+      <h2>Welcome to FusionX CMS!</h2>
+      <p>Hi ${name},</p>
+      <p>Thank you for registering with FusionX CMS. Please use the following OTP to verify your email address:</p>
+      <div style="text-align: center; margin: 20px 0;">
+        <span style="display: inline-block; padding: 15px 30px; background-color: #3B82F6; color: white; font-size: 24px; font-weight: bold; letter-spacing: 3px; border-radius: 8px;">${otp}</span>
+      </div>
+      <p>This OTP will expire in 10 minutes.</p>
+      <p>If you didn't create this account, please ignore this email.</p>
+      <br>
+      <p>Best regards,<br>The FusionX CMS Team</p>
+    `;
 
-    res.status(201).json({
-      success: true,
-      token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        legacyRole: user.legacyRole,
-        avatar: user.avatar
-      }
-    });
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Verify Your Email - FusionX CMS',
+        html: message
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Registration successful! Please check your email for the verification OTP.',
+        email: user.email
+      });
+    } catch (emailError) {
+      console.error('Email sending error:', emailError);
+      // Delete user if email fails
+      await User.findByIdAndDelete(user._id);
+      
+      res.status(500).json({
+        success: false,
+        message: 'Registration failed. Could not send verification email.'
+      });
+    }
   } catch (err) {
     console.error('Registration error:', err);
     res.status(500).json({

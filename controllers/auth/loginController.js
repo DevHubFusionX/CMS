@@ -41,6 +41,16 @@ exports.login = async (req, res) => {
       });
     }
 
+    // Check if email is verified (only for new registrations)
+    if (!user.isEmailVerified) {
+      return res.status(401).json({
+        success: false,
+        message: 'Please verify your email address to complete registration',
+        needsVerification: true,
+        email: user.email
+      });
+    }
+
     // Generate token
     let token;
     try {
