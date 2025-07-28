@@ -41,7 +41,16 @@ exports.login = async (req, res) => {
     }
 
     // Generate token
-    const token = user.getSignedJwtToken();
+    let token;
+    try {
+      token = user.getSignedJwtToken();
+    } catch (tokenError) {
+      console.error('JWT token generation error:', tokenError);
+      return res.status(500).json({
+        success: false,
+        message: 'Authentication service error'
+      });
+    }
 
     res.status(200).json({
       success: true,
