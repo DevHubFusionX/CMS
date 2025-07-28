@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const path = require('path');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
 
 // Import utilities
 const logger = require('./utils/logger');
@@ -46,18 +47,29 @@ const apiLimiter = rateLimit({
 });
 app.use('/api/', apiLimiter);
 
-// CORS configuration
+// CORS configuration with environment-based origins
+const getAllowedOrigins = () => {
+  const baseOrigins = ['http://localhost:5173', 'http://localhost:3000'];
+  const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : [];
+  return [...baseOrigins, ...envOrigins];
+};
+
 const corsOptions = {
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:3000', 
-    'http://127.0.0.1:5173',
-    'https://fusionx-nine.vercel.app',
-    'https://cms-2prb.onrender.com'
-  ],
+  origin: (origin, callback) => {
+    const allowedOrigins = getAllowedOrigins();
+    // Allow requests with no origin (mobile apps, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-CSRF-Token'],
+  exposedHeaders: ['X-CSRF-Token']
 };
 
 // Standard middleware
@@ -65,6 +77,60 @@ app.use(cors(corsOptions));
 app.options('*', cors(corsOptions)); // Handle preflight requests
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Simple CSRF protection middleware
+const csrfTokens = new Map();
+
+const generateCSRFToken = () => {
+  return crypto.randomBytes(32).toString('hex');
+};
+
+const csrfProtection = (req, res, next) => {
+  if (req.method === 'GET') {
+    return next();
+  }
+  
+  const token = req.headers['x-csrf-token'];
+  const userAgent = req.headers['user-agent'] || '';
+  const ip = req.ip || req.connection.remoteAddress;
+  const key = `${ip}-${userAgent}`;
+  
+  if (!token || !csrfTokens.has(key) || csrfTokens.get(key) !== token) {
+    return res.status(403).json({
+      success: false,
+      message: 'Invalid CSRF token'
+    });
+  }
+  
+  next();
+};
+
+// CSRF token endpoint
+app.get('/api/csrf-token', (req, res) => {
+  const token = generateCSRFToken();
+  const userAgent = req.headers['user-agent'] || '';
+  const ip = req.ip || req.connection.remoteAddress;
+  const key = `${ip}-${userAgent}`;
+  
+  csrfTokens.set(key, token);
+  
+  // Clean up old tokens (keep only last 1000)
+  if (csrfTokens.size > 1000) {
+    const firstKey = csrfTokens.keys().next().value;
+    csrfTokens.delete(firstKey);
+  }
+  
+  res.json({ csrfToken: token });
+});
+
+// Apply CSRF to state-changing routes only
+app.use('/api/posts', csrfProtection);
+app.use('/api/users', csrfProtection);
+app.use('/api/media', csrfProtection);
+app.use('/api/categories', csrfProtection);
+app.use('/api/tags', csrfProtection);
+app.use('/api/comments', csrfProtection);
+app.use('/api/settings', csrfProtection);
 
 // Request timeout middleware
 app.use((req, res, next) => {

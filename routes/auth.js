@@ -36,6 +36,11 @@ router.post('/login', authLimiter, authController.login);
 // @access  Private
 router.get('/me', protect, authController.getMe);
 
+// @route   POST /api/auth/logout
+// @desc    Logout user and blacklist token
+// @access  Private
+router.post('/logout', protect, authController.logout);
+
 // @route   POST /api/auth/forgot-password
 // @desc    Forgot password - send reset email
 // @access  Public

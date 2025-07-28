@@ -27,7 +27,26 @@ exports.protect = async (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Get user from the token
-    req.user = await User.findById(decoded.id);
+    const user = await User.findById(decoded.id);
+    
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+    
+    // Check if token is blacklisted
+    const isBlacklisted = user.tokenBlacklist.some(entry => entry.token === token);
+    if (isBlacklisted) {
+      return res.status(401).json({
+        success: false,
+        message: 'Token has been revoked'
+      });
+    }
+    
+    req.user = user;
+    req.token = token;
 
     next();
   } catch (err) {
