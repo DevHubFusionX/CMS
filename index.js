@@ -78,7 +78,7 @@ const getAllowedOrigins = () => {
 // Initialize Socket.IO after getAllowedOrigins is defined
 const io = new Server(server, {
   cors: {
-    origin: getAllowedOrigins(),
+    origin: [...getAllowedOrigins(), 'https://fusionx-nine.vercel.app'],
     methods: ['GET', 'POST'],
     credentials: true
   }
