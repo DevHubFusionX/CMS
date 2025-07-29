@@ -10,12 +10,23 @@ const logger = require('../utils/logger');
 // Sanitize HTML content
 const sanitizeContent = (content) => {
   return sanitizeHtml(content, {
-    allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img', 'h1', 'h2']),
+    allowedTags: [
+      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'blockquote',
+      'a', 'img',
+      'table', 'thead', 'tbody', 'tr', 'th', 'td',
+      'div', 'span'
+    ],
     allowedAttributes: {
-      ...sanitizeHtml.defaults.allowedAttributes,
       'img': ['src', 'alt', 'title', 'width', 'height', 'loading', 'class'],
       'a': ['href', 'name', 'target', 'rel', 'class'],
       '*': ['class', 'id', 'style']
+    },
+    allowedSchemes: ['http', 'https', 'mailto'],
+    allowedClasses: {
+      '*': ['*']
     }
   });
 };
