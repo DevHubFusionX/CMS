@@ -5,7 +5,7 @@ const RoleSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    enum: ['visitor', 'subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin']
+    enum: ['visitor', 'subscriber', 'student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin']
   },
   displayName: {
     type: String,
@@ -32,6 +32,8 @@ const RoleSchema = new mongoose.Schema({
       'create_pages', 'edit_pages', 'delete_pages',
       // Settings permissions
       'manage_settings', 'view_analytics',
+      // LMS permissions
+      'enroll_courses', 'view_courses', 'take_quizzes', 'view_certificates', 'create_courses', 'edit_own_courses', 'manage_enrollments', 'grade_assignments', 'view_course_analytics',
       // System permissions
       'access_dashboard', 'manage_plugins', 'manage_themes', 'manage_sites'
     ]
