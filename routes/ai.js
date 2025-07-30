@@ -37,6 +37,7 @@ Example format:
 <h1>Title</h1>
 <p>Introduction paragraph...</p>
 <h2>Section Heading</h2>
+<li>list</li>
 <ul>
   <li><strong>Term:</strong> Description</li>
 </ul>`
