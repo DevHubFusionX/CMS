@@ -181,11 +181,15 @@ router.put('/:id', protect, async (req, res) => {
       const roleDoc = await Role.findOne({ name: req.body.role });
       if (roleDoc) {
         req.body.role = roleDoc._id;
-        req.body.legacyRole = roleDoc.name;
+        // Only set legacyRole if it's a valid enum value
+        const validRoles = ['subscriber', 'student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'];
+        if (validRoles.includes(roleDoc.name)) {
+          req.body.legacyRole = roleDoc.name;
+        }
       } else {
-        // If role not found, set legacyRole and remove role field
-        req.body.legacyRole = req.body.role;
+        // If role not found, remove both fields to avoid validation errors
         delete req.body.role;
+        delete req.body.legacyRole;
       }
     }
 

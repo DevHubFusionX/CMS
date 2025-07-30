@@ -32,7 +32,7 @@ const UserSchema = new mongoose.Schema({
   // Legacy role field for backward compatibility
   legacyRole: {
     type: String,
-    enum: ['subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin'],
+    enum: ['subscriber', 'student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'],
     default: 'subscriber'
   },
   avatar: {
