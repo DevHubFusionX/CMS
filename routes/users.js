@@ -135,7 +135,7 @@ router.get('/:id', protect, async (req, res) => {
     }
 
     // Make sure user is admin or getting own profile
-    const userRole = req.user.legacyRole || req.user.role;
+    const userRole = req.user.legacyRole || (req.user.role?.name || req.user.role);
     if (req.user.id !== req.params.id && userRole !== 'admin' && userRole !== 'super_admin') {
       return res.status(401).json({
         success: false,
@@ -162,7 +162,7 @@ router.get('/:id', protect, async (req, res) => {
 router.put('/:id', protect, async (req, res) => {
   try {
     // Make sure user is admin or updating own profile
-    const userRole = req.user.legacyRole || req.user.role;
+    const userRole = req.user.legacyRole || (req.user.role?.name || req.user.role);
     if (req.user.id !== req.params.id && userRole !== 'admin' && userRole !== 'super_admin') {
       return res.status(401).json({
         success: false,
