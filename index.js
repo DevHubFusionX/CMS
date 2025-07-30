@@ -69,7 +69,8 @@ const getAllowedOrigins = () => {
     'http://localhost:5173',
     'http://localhost:3000',
     'http://127.0.0.1:5173',
-    'http://127.0.0.1:3000'
+    'http://127.0.0.1:3000',
+    'https://fusionx-nine.vercel.app'
   ];
   const envOrigins = process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim()) : [];
   return [...baseOrigins, ...envOrigins];
@@ -94,12 +95,7 @@ const corsOptions = {
     // Allow requests with no origin (mobile apps, Postman, etc.)
     if (!origin) return callback(null, true);
     
-    // Allow localhost in development
-    if (process.env.NODE_ENV !== 'production' && origin.includes('localhost')) {
-      return callback(null, true);
-    }
-    
-    // Temporary: Allow Vercel app directly
+    // Always allow Vercel app
     if (origin === 'https://fusionx-nine.vercel.app') {
       return callback(null, true);
     }
@@ -107,9 +103,6 @@ const corsOptions = {
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      console.log(`CORS blocked origin: ${origin}`);
-      console.log('ENV ALLOWED_ORIGINS:', process.env.ALLOWED_ORIGINS);
-      console.log('Parsed origins:', allowedOrigins);
       callback(new Error('Not allowed by CORS'));
     }
   },
