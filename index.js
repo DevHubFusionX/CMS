@@ -28,6 +28,7 @@ const mediaRoutes = require('./routes/media');
 const settingsRoutes = require('./routes/settings');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
+const seedRoutes = require('./routes/seed');
 
 // Load environment variables
 dotenv.config();
