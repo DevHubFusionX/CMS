@@ -182,7 +182,7 @@ router.put('/:id', protect, async (req, res) => {
       if (roleDoc) {
         req.body.role = roleDoc._id;
         // Only set legacyRole if it's a valid enum value
-        const validRoles = ['subscriber', 'student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'];
+        const validRoles = ['subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin'];
         if (validRoles.includes(roleDoc.name)) {
           req.body.legacyRole = roleDoc.name;
         }
@@ -271,11 +271,11 @@ router.put('/:id/promote', protect, authorize('admin', 'super_admin'), async (re
     const { role } = req.body;
     
     // Validate allowed promotion roles
-    const allowedPromotionRoles = ['student', 'instructor', 'contributor', 'author', 'editor'];
+    const allowedPromotionRoles = ['contributor', 'author', 'editor'];
     if (!allowedPromotionRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid role for promotion. Allowed roles: student, instructor, contributor, author, editor'
+        message: 'Invalid role for promotion. Allowed roles: contributor, author, editor'
       });
     }
 

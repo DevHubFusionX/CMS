@@ -6,7 +6,7 @@ const { protect, authorize } = require('../middleware/auth');
 // @route   GET /api/comments
 // @desc    Get all comments
 // @access  Private (Author and above)
-router.get('/', protect, authorize('student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'), async (req, res) => {
+router.get('/', protect, authorize('contributor', 'author', 'editor', 'admin', 'super_admin'), async (req, res) => {
   try {
     const comments = await Comment.find()
       .populate('user', 'name avatar')

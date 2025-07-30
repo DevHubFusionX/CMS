@@ -28,7 +28,6 @@ const mediaRoutes = require('./routes/media');
 const settingsRoutes = require('./routes/settings');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
-const lmsRoutes = require('./routes/lms');
 
 // Load environment variables
 dotenv.config();
@@ -251,11 +250,39 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
-app.use('/api/lms', lmsRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
+});
+
+// Temporary cleanup endpoint (REMOVE AFTER USE)
+app.get('/cleanup-lms', async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const Role = require('./models/Role');
+    
+    // Update users with student/instructor roles to subscriber
+    await User.updateMany(
+      { legacyRole: { $in: ['student', 'instructor'] } },
+      { legacyRole: 'subscriber' }
+    );
+    
+    // Remove student/instructor roles from database
+    await Role.deleteMany({ name: { $in: ['student', 'instructor'] } });
+    
+    res.status(200).json({
+      success: true,
+      message: 'LMS cleanup completed'
+    });
+  } catch (error) {
+    console.error('Cleanup error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Cleanup failed',
+      error: error.message
+    });
+  }
 });
 
 // Secure error handling middleware

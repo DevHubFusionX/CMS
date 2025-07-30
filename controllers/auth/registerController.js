@@ -26,13 +26,13 @@ exports.register = async (req, res) => {
     }
 
     // Validate allowed roles for public registration
-    const allowedRoles = ['student', 'subscriber'];
+    const allowedRoles = ['subscriber', 'author'];
     const selectedRole = role || 'subscriber';
     
     if (!allowedRoles.includes(selectedRole)) {
       return res.status(403).json({
         success: false,
-        message: 'Invalid role. Only Student and Subscriber roles are allowed for public registration.'
+        message: 'Invalid role. Only Subscriber and Author roles are allowed for public registration.'
       });
     }
 
