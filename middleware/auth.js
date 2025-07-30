@@ -73,16 +73,15 @@ exports.authorize = (...roles) => {
     }
     
     try {
-      // Get user with populated role
-      const user = await User.findById(req.user.id || req.user._id).populate('role');
-      if (!user || !user.role) {
+      // Get user role from either legacyRole or populated role
+      const userRole = req.user.legacyRole || (req.user.role?.name || req.user.role);
+      
+      if (!userRole) {
         return res.status(403).json({
           success: false,
           message: 'No role assigned'
         });
       }
-      
-      const userRole = user.role.name;
       
       // Super admin has access to everything
       if (userRole === 'super_admin') {
@@ -116,15 +115,15 @@ exports.checkOwnership = (resourceField = 'author') => {
     }
     
     try {
-      const user = await User.findById(req.user.id || req.user._id).populate('role');
-      if (!user || !user.role) {
+      // Get user role from either legacyRole or populated role
+      const userRole = req.user.legacyRole || (req.user.role?.name || req.user.role);
+      
+      if (!userRole) {
         return res.status(403).json({
           success: false,
           message: 'No role assigned'
         });
       }
-      
-      const userRole = user.role.name;
       
       // Admin and super_admin can access everything
       if (userRole === 'admin' || userRole === 'super_admin') {
