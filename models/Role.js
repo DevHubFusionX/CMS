@@ -42,7 +42,7 @@ const RoleSchema = new mongoose.Schema({
     type: Number,
     required: true,
     min: 0,
-    max: 7
+    max: 8
   },
   isActive: {
     type: Boolean,
