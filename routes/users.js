@@ -261,26 +261,7 @@ router.delete('/:id', protect, authorize('admin', 'super_admin'), async (req, re
   }
 });
 
-// @route   GET /api/users/seed-roles-temp
-// @desc    Temporary seed roles endpoint
-// @access  Public (REMOVE AFTER USE)
-router.get('/seed-roles-temp', async (req, res) => {
-  try {
-    const { seedRoles } = require('../utils/roleSeeder');
-    await seedRoles();
-    res.status(200).json({
-      success: true,
-      message: 'Roles seeded successfully'
-    });
-  } catch (error) {
-    console.error('Seeding error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to seed roles',
-      error: error.message
-    });
-  }
-});
+
 
 // @route   PUT /api/users/:id/promote
 // @desc    Promote user role (Admin only)
