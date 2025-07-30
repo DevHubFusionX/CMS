@@ -8,7 +8,7 @@ const { protect, authorize } = require('../middleware/auth');
 // @route   GET /api/analytics
 // @desc    Get analytics data
 // @access  Private (Author and above)
-router.get('/', protect, authorize('author', 'contributor', 'editor', 'admin', 'super_admin'), async (req, res) => {
+router.get('/', protect, authorize('student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'), async (req, res) => {
   try {
     const { dateRange = '30' } = req.query;
     const days = parseInt(dateRange);
@@ -16,7 +16,7 @@ router.get('/', protect, authorize('author', 'contributor', 'editor', 'admin', '
     startDate.setDate(startDate.getDate() - days);
     
     const userRole = req.user.legacyRole || req.user.role?.name || req.user.role;
-    const isAuthorOrContributor = ['author', 'contributor'].includes(userRole);
+    const isAuthorOrContributor = ['student', 'contributor', 'author', 'instructor'].includes(userRole);
     
     let postFilter = {};
     if (isAuthorOrContributor) {

@@ -34,7 +34,7 @@ const sanitizeContent = (content) => {
 // @route   GET /api/posts
 // @desc    Get all published posts with filtering, sorting, and pagination
 // @access  Public (Visitor and above)
-router.get('/', authorize('visitor', 'subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin'), async (req, res) => {
+router.get('/', authorize('visitor', 'subscriber', 'student', 'contributor', 'author', 'instructor', 'editor', 'admin', 'super_admin'), async (req, res) => {
   try {
     const { 
       page = 1, 
