@@ -261,10 +261,10 @@ router.delete('/:id', protect, authorize('admin', 'super_admin'), async (req, re
   }
 });
 
-// @route   POST /api/users/seed-roles
-// @desc    Seed roles (Super Admin only)
-// @access  Private (Super Admin only)
-router.post('/seed-roles', protect, authorize('super_admin'), async (req, res) => {
+// @route   GET /api/users/seed-roles-temp
+// @desc    Temporary seed roles endpoint
+// @access  Public (REMOVE AFTER USE)
+router.get('/seed-roles-temp', async (req, res) => {
   try {
     const { seedRoles } = require('../utils/roleSeeder');
     await seedRoles();
