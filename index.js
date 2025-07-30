@@ -263,6 +263,25 @@ app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date() });
 });
 
+// Temporary seed endpoint (REMOVE AFTER USE)
+app.get('/seed-roles-now', async (req, res) => {
+  try {
+    const { seedRoles } = require('./utils/roleSeeder');
+    await seedRoles();
+    res.status(200).json({
+      success: true,
+      message: 'Roles seeded successfully'
+    });
+  } catch (error) {
+    console.error('Seeding error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to seed roles',
+      error: error.message
+    });
+  }
+});
+
 // Secure error handling middleware
 app.use((err, req, res, next) => {
   // Log full error details server-side only
