@@ -257,6 +257,62 @@ router.delete('/:id', protect, authorize('admin', 'super_admin'), async (req, re
   }
 });
 
+// @route   PUT /api/users/:id/promote
+// @desc    Promote user role (Admin only)
+// @access  Private (Admin only)
+router.put('/:id/promote', protect, authorize('admin', 'super_admin'), async (req, res) => {
+  try {
+    const { role } = req.body;
+    
+    // Validate allowed promotion roles
+    const allowedPromotionRoles = ['student', 'instructor', 'contributor', 'author', 'editor'];
+    if (!allowedPromotionRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid role for promotion. Allowed roles: student, instructor, contributor, author, editor'
+      });
+    }
+
+    // Find the role document
+    const roleDoc = await Role.findOne({ name: role });
+    if (!roleDoc) {
+      return res.status(400).json({
+        success: false,
+        message: 'Role not found in database'
+      });
+    }
+
+    // Update user role
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { 
+        role: roleDoc._id,
+        legacyRole: role
+      },
+      { new: true, runValidators: true }
+    ).select('-password').populate('role');
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `User promoted to ${role} successfully`,
+      data: user
+    });
+  } catch (err) {
+    console.error('Role promotion error:', err);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   POST /api/users/avatar
 // @desc    Upload user avatar (doesn't save to media library)
 // @access  Private (Own profile only)

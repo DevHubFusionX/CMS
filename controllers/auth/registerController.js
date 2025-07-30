@@ -25,14 +25,14 @@ exports.register = async (req, res) => {
       });
     }
 
-    // Validate allowed roles
-    const allowedRoles = ['author', 'subscriber'];
+    // Validate allowed roles for public registration
+    const allowedRoles = ['student', 'subscriber'];
     const selectedRole = role || 'subscriber';
     
     if (!allowedRoles.includes(selectedRole)) {
-      return res.status(400).json({
+      return res.status(403).json({
         success: false,
-        message: 'Only Author and Subscriber roles are allowed for registration'
+        message: 'Invalid role. Only Student and Subscriber roles are allowed for public registration.'
       });
     }
 
