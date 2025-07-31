@@ -691,18 +691,18 @@ router.post('/:id/duplicate', protect, authorize('contributor', 'author', 'edito
       });
     }
 
-    // Create duplicate with modified title and slug
+    // Create duplicate with modified title (slug will auto-generate)
     const duplicateData = {
       title: `${originalPost.title} (Copy)`,
       content: originalPost.content,
       excerpt: originalPost.excerpt,
       featuredImage: originalPost.featuredImage,
-      galleryImages: originalPost.galleryImages,
-      categories: originalPost.categories,
-      tags: originalPost.tags,
+      galleryImages: originalPost.galleryImages || [],
+      categories: originalPost.categories || [],
+      tags: originalPost.tags || [],
       metaDescription: originalPost.metaDescription,
       focusKeyword: originalPost.focusKeyword,
-      language: originalPost.language,
+      language: originalPost.language || 'en',
       author: req.user.id,
       status: 'draft'
     };
