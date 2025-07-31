@@ -96,7 +96,16 @@ const PostSchema = new mongoose.Schema({
   },
   publishedAt: {
     type: Date
-  }
+  },
+  // Basic Analytics
+  views: {
+    type: Number,
+    default: 0
+  },
+  viewHistory: [{
+    date: { type: Date, default: Date.now },
+    count: { type: Number, default: 1 }
+  }]
 });
 
 // Create slug from title before saving if not provided
@@ -174,6 +183,49 @@ PostSchema.statics.publishScheduledPosts = async function() {
   }
   
   return scheduledPosts.length;
+};
+
+// Get related posts based on categories and tags
+PostSchema.methods.getRelatedPosts = async function(limit = 5) {
+  const relatedPosts = await this.constructor.find({
+    _id: { $ne: this._id },
+    status: 'published',
+    $or: [
+      { categories: { $in: this.categories } },
+      { tags: { $in: this.tags } }
+    ]
+  })
+  .populate('author', 'name avatar')
+  .populate('categories', 'name slug')
+  .sort({ views: -1, publishedAt: -1 })
+  .limit(limit);
+  
+  return relatedPosts;
+};
+
+// Track post view
+PostSchema.methods.trackView = async function() {
+  this.views += 1;
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const todayView = this.viewHistory.find(v => 
+    v.date.toDateString() === today.toDateString()
+  );
+  
+  if (todayView) {
+    todayView.count += 1;
+  } else {
+    this.viewHistory.push({ date: today, count: 1 });
+    
+    // Keep only last 30 days
+    if (this.viewHistory.length > 30) {
+      this.viewHistory.shift();
+    }
+  }
+  
+  await this.save();
 };
 
 module.exports = mongoose.model('Post', PostSchema);

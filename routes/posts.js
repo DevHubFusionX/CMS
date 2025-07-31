@@ -329,6 +329,11 @@ router.get('/:id', async (req, res) => {
       }
     }
 
+    // Track view for published posts
+    if (post.status === 'published') {
+      await post.trackView();
+    }
+
     res.status(200).json({
       success: true,
       data: post
@@ -387,11 +392,11 @@ router.get('/:id/versions', protect, async (req, res) => {
 // @route   POST /api/posts
 // @desc    Create new post
 // @access  Private (Contributor and above)
-router.post('/', protect, authorize('contributor', 'author', 'editor', 'admin', 'super_admin'), async (req, res) => {
+router.post('/', protect, authorize('subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin'), async (req, res) => {
     const userRole = req.user.legacyRole || req.user.role?.name || req.user.role;
     
-    // Contributors can only create drafts
-    if (userRole === 'contributor' && req.body.status !== 'draft') {
+    // Subscribers and Contributors can only create drafts
+    if (['subscriber', 'contributor'].includes(userRole) && req.body.status !== 'draft') {
       req.body.status = 'draft';
     }
   try {
@@ -665,6 +670,81 @@ router.post('/:id/restore/:versionId', protect, async (req, res) => {
     });
   } catch (err) {
     logger.error(`Error restoring post version ${req.params.id}/${req.params.versionId}: ${err.message}`);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   POST /api/posts/:id/duplicate
+// @desc    Duplicate a post
+// @access  Private
+router.post('/:id/duplicate', protect, authorize('contributor', 'author', 'editor', 'admin', 'super_admin'), async (req, res) => {
+  try {
+    const originalPost = await Post.findById(req.params.id);
+
+    if (!originalPost) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    // Create duplicate with modified title and slug
+    const duplicateData = {
+      title: `${originalPost.title} (Copy)`,
+      content: originalPost.content,
+      excerpt: originalPost.excerpt,
+      featuredImage: originalPost.featuredImage,
+      galleryImages: originalPost.galleryImages,
+      categories: originalPost.categories,
+      tags: originalPost.tags,
+      metaDescription: originalPost.metaDescription,
+      focusKeyword: originalPost.focusKeyword,
+      language: originalPost.language,
+      author: req.user.id,
+      status: 'draft'
+    };
+
+    const duplicatedPost = await Post.create(duplicateData);
+
+    res.status(201).json({
+      success: true,
+      data: duplicatedPost
+    });
+  } catch (err) {
+    logger.error(`Error duplicating post ${req.params.id}: ${err.message}`);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
+// @route   GET /api/posts/:id/related
+// @desc    Get related posts
+// @access  Public
+router.get('/:id/related', async (req, res) => {
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: 'Post not found'
+      });
+    }
+
+    const relatedPosts = await post.getRelatedPosts(5);
+
+    res.status(200).json({
+      success: true,
+      count: relatedPosts.length,
+      data: relatedPosts
+    });
+  } catch (err) {
+    logger.error(`Error getting related posts for ${req.params.id}: ${err.message}`);
     res.status(500).json({
       success: false,
       message: 'Server error'

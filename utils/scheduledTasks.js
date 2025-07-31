@@ -6,6 +6,7 @@
 const cron = require('node-cron');
 const Post = require('../models/Post');
 const logger = require('./logger');
+const { createBackup } = require('./backup');
 
 // Initialize scheduled tasks
 const initScheduledTasks = () => {
@@ -27,8 +28,9 @@ const initScheduledTasks = () => {
     try {
       logger.info('Running daily maintenance tasks');
       
-      // Add any other daily tasks here
-      // For example: cleanup old data, generate reports, etc.
+      // Create daily backup
+      await createBackup();
+      logger.info('Daily backup completed successfully');
       
     } catch (error) {
       logger.error('Error running daily maintenance tasks:', error);

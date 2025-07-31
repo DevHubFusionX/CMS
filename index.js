@@ -28,6 +28,8 @@ const mediaRoutes = require('./routes/media');
 const settingsRoutes = require('./routes/settings');
 const analyticsRoutes = require('./routes/analytics');
 const aiRoutes = require('./routes/ai');
+const sitemapRoutes = require('./routes/sitemap');
+const backupRoutes = require('./routes/backup');
 
 // Load environment variables
 dotenv.config();
@@ -250,6 +252,8 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/', sitemapRoutes);
+app.use('/api/backup', backupRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
