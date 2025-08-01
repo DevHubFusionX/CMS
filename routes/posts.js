@@ -246,6 +246,27 @@ router.get('/scheduled', protect, authorize('admin', 'editor'), async (req, res)
   }
 });
 
+// @route   POST /api/posts/publish-scheduled
+// @desc    Manually trigger publishing of scheduled posts
+// @access  Private (Admin only)
+router.post('/publish-scheduled', protect, authorize('admin', 'super_admin'), async (req, res) => {
+  try {
+    const publishedCount = await Post.publishScheduledPosts();
+    
+    res.status(200).json({
+      success: true,
+      message: `Published ${publishedCount} scheduled posts`,
+      publishedCount
+    });
+  } catch (err) {
+    logger.error(`Error publishing scheduled posts: ${err.message}`);
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   GET /api/posts/slug/:slug
 // @desc    Get post by slug
 // @access  Public
@@ -408,6 +429,24 @@ router.post('/', protect, authorize('subscriber', 'contributor', 'author', 'edit
       req.body.content = sanitizeContent(req.body.content);
     }
     
+    // Validate scheduled date if status is scheduled
+    if (req.body.status === 'scheduled') {
+      if (!req.body.scheduledDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Scheduled date is required when status is scheduled'
+        });
+      }
+      
+      const scheduledDate = new Date(req.body.scheduledDate);
+      if (scheduledDate <= new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Scheduled date must be in the future'
+        });
+      }
+    }
+    
     // Create initial version
     if (req.body.content) {
       req.body.versions = [{
@@ -510,6 +549,24 @@ router.put('/:id', protect, authorize('contributor', 'author', 'editor', 'admin'
     // Sanitize HTML content
     if (req.body.content) {
       req.body.content = sanitizeContent(req.body.content);
+    }
+    
+    // Validate scheduled date if status is scheduled
+    if (req.body.status === 'scheduled') {
+      if (!req.body.scheduledDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Scheduled date is required when status is scheduled'
+        });
+      }
+      
+      const scheduledDate = new Date(req.body.scheduledDate);
+      if (scheduledDate <= new Date()) {
+        return res.status(400).json({
+          success: false,
+          message: 'Scheduled date must be in the future'
+        });
+      }
     }
     
     // Handle version history
