@@ -5,6 +5,7 @@
 
 const cron = require('node-cron');
 const Post = require('../models/Post');
+const User = require('../models/User');
 const logger = require('./logger');
 const { createBackup } = require('./backup');
 
@@ -20,6 +21,24 @@ const initScheduledTasks = () => {
       }
     } catch (error) {
       logger.error('Error publishing scheduled posts:', error);
+    }
+  });
+  
+  // Delete unverified accounts every hour
+  cron.schedule('0 * * * *', async () => {
+    try {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      
+      const deletedUsers = await User.deleteMany({
+        isEmailVerified: false,
+        createdAt: { $lt: twentyFourHoursAgo }
+      });
+      
+      if (deletedUsers.deletedCount > 0) {
+        logger.info(`Deleted ${deletedUsers.deletedCount} unverified user accounts`);
+      }
+    } catch (error) {
+      logger.error('Error deleting unverified accounts:', error);
     }
   });
   
