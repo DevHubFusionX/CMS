@@ -1,23 +1,23 @@
-const express = require('express');
-const router = express.Router();
-const Post = require('../models/Post');
-const Category = require('../models/Category');
+const express = require('express')
+const router = express.Router()
+const Post = require('../models/Post')
+const Category = require('../models/Category')
 
 // @route   GET /sitemap.xml
 // @desc    Generate XML sitemap
 // @access  Public
 router.get('/sitemap.xml', async (req, res) => {
   try {
-    const baseUrl = process.env.FRONTEND_URL || 'https://fusionx-nine.vercel.app';
-    
+    const baseUrl =
+      process.env.FRONTEND_URL || 'https://HubFusionx-nine.vercel.app'
+
     // Get all published posts
     const posts = await Post.find({ status: 'published' })
       .select('slug updatedAt publishedAt')
-      .sort({ publishedAt: -1 });
-    
+      .sort({ publishedAt: -1 })
+
     // Get all categories
-    const categories = await Category.find()
-      .select('slug updatedAt');
+    const categories = await Category.find().select('slug updatedAt')
 
     let sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -30,19 +30,19 @@ router.get('/sitemap.xml', async (req, res) => {
     <loc>${baseUrl}/blog</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
-  </url>`;
+  </url>`
 
     // Add posts to sitemap
     posts.forEach(post => {
-      const lastmod = post.updatedAt || post.publishedAt;
+      const lastmod = post.updatedAt || post.publishedAt
       sitemap += `
   <url>
     <loc>${baseUrl}/blog/${post.slug}</loc>
     <lastmod>${lastmod.toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`;
-    });
+  </url>`
+    })
 
     // Add categories to sitemap
     categories.forEach(category => {
@@ -52,21 +52,21 @@ router.get('/sitemap.xml', async (req, res) => {
     <lastmod>${category.updatedAt.toISOString()}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
-  </url>`;
-    });
+  </url>`
+    })
 
     sitemap += `
-</urlset>`;
+</urlset>`
 
-    res.set('Content-Type', 'application/xml');
-    res.send(sitemap);
+    res.set('Content-Type', 'application/xml')
+    res.send(sitemap)
   } catch (err) {
-    console.error('Error generating sitemap:', err);
+    console.error('Error generating sitemap:', err)
     res.status(500).json({
       success: false,
       message: 'Error generating sitemap'
-    });
+    })
   }
-});
+})
 
-module.exports = router;
+module.exports = router
