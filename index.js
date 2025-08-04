@@ -78,7 +78,7 @@ const getAllowedOrigins = () => {
     'http://localhost:3000',
     'http://127.0.0.1:5173',
     'http://127.0.0.1:3000',
-    'https://HubFusionx-nine.vercel.app'
+    'https://fusionx-nine.vercel.app'
   ]
   const envOrigins = process.env.ALLOWED_ORIGINS
     ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
@@ -89,7 +89,7 @@ const getAllowedOrigins = () => {
 // Initialize Socket.IO after getAllowedOrigins is defined
 const io = new Server(server, {
   cors: {
-    origin: [...getAllowedOrigins(), 'https://HubFusionx-nine.vercel.app'],
+    origin: [...getAllowedOrigins(), 'https://fusionx-nine.vercel.app'],
     methods: ['GET', 'POST'],
     credentials: true
   }
@@ -106,7 +106,7 @@ const corsOptions = {
     if (!origin) return callback(null, true)
 
     // Always allow Vercel app
-    if (origin === 'https://HubFusionx-nine.vercel.app') {
+    if (origin === 'https://fusionx-nine.vercel.app') {
       return callback(null, true)
     }
 
