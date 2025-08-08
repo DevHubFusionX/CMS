@@ -60,7 +60,7 @@ const PageSchema = new mongoose.Schema({
 
 // Create slug from title before saving
 PageSchema.pre('save', async function(next) {
-  if (!this.slug && this.isModified('title')) {
+  if (!this.slug && this.title) {
     let baseSlug = this.title
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
