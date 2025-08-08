@@ -86,6 +86,24 @@ router.post('/', protect, authorize('editor', 'admin', 'super_admin'), async (re
     console.log('User:', req.user?.id);
     
     req.body.author = req.user.id;
+    
+    // Generate slug if not provided
+    if (!req.body.slug && req.body.title) {
+      let baseSlug = req.body.title
+        .toLowerCase()
+        .replace(/[^\w\s]/gi, '')
+        .replace(/\s+/g, '-');
+      
+      let slug = baseSlug;
+      let counter = 1;
+      
+      while (await Page.findOne({ slug })) {
+        slug = `${baseSlug}-${counter}`;
+        counter++;
+      }
+      
+      req.body.slug = slug;
+    }
 
     const page = await Page.create(req.body);
 
