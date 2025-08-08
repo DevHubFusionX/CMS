@@ -3,6 +3,7 @@ const router = express.Router();
 const Post = require('../models/Post');
 const User = require('../models/User');
 const Comment = require('../models/Comment');
+const Media = require('../models/Media');
 const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/analytics
@@ -34,6 +35,9 @@ router.get('/', protect, authorize('contributor', 'author', 'editor', 'admin', '
 
     // Get comments count
     const totalComments = await Comment.countDocuments();
+
+    // Get media count (only for admin/editor)
+    const totalMedia = isAuthorOrContributor ? 0 : await Media.countDocuments();
 
     // Posts by date (last 30 days)
     const postsByDate = await Post.aggregate([
@@ -122,7 +126,7 @@ router.get('/', protect, authorize('contributor', 'author', 'editor', 'admin', '
           pendingReview: 0,
           authorsCount: Math.floor(totalUsers * 0.3),
           categoriesCount: 8,
-          totalMedia: Math.floor(totalPosts * 1.5),
+          totalMedia,
           totalViews: Math.floor(totalPosts * 50),
           avgEngagement: 4.2
         },

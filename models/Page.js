@@ -16,14 +16,6 @@ const PageSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add content']
   },
-  layout_json: {
-    type: mongoose.Schema.Types.Mixed,
-    default: []
-  },
-  isPageBuilder: {
-    type: Boolean,
-    default: false
-  },
   excerpt: {
     type: String,
     maxlength: [500, 'Excerpt cannot be more than 500 characters']
