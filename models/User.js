@@ -71,7 +71,7 @@ const UserSchema = new mongoose.Schema({
 // Validate password before hashing
 UserSchema.pre('validate', function(next) {
   if (this.isModified('password') && this.password) {
-    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&-])[A-Za-z\d@$!%*?&-]{8,}$/;
     if (!passwordRegex.test(this.password)) {
       this.invalidate('password', 'Password must contain at least 8 characters with uppercase, lowercase, number and special character');
     }
