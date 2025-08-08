@@ -68,6 +68,34 @@ router.get('/all', protect, authorize('editor', 'admin', 'super_admin'), async (
   }
 });
 
+// @route   GET /api/pages/:id
+// @desc    Get page by ID
+// @access  Private (Editor+)
+router.get('/:id', protect, authorize('editor', 'admin', 'super_admin'), async (req, res) => {
+  try {
+    const page = await Page.findById(req.params.id)
+      .populate('author', 'name')
+      .populate('parentPage', 'title slug');
+
+    if (!page) {
+      return res.status(404).json({
+        success: false,
+        message: 'Page not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: page
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error'
+    });
+  }
+});
+
 // @route   GET /api/pages/slug/:slug
 // @desc    Get page by slug
 // @access  Public
