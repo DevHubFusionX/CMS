@@ -16,7 +16,6 @@ const { initScheduledTasks } = require('./utils/scheduledTasks')
 // Import models to ensure they're registered
 require('./models/Role')
 require('./models/User')
-require('./models/Page')
 
 // Import routes
 const authRoutes = require('./routes/auth')
@@ -218,7 +217,6 @@ app.use('/api/categories', csrfProtection)
 app.use('/api/tags', csrfProtection)
 app.use('/api/comments', csrfProtection)
 app.use('/api/settings', csrfProtection)
-app.use('/api/pages', csrfProtection)
 
 // Request timeout middleware
 app.use((req, res, next) => {

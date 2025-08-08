@@ -16,6 +16,14 @@ const PageSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Please add content']
   },
+  layout_json: {
+    type: mongoose.Schema.Types.Mixed,
+    default: []
+  },
+  isPageBuilder: {
+    type: Boolean,
+    default: false
+  },
   excerpt: {
     type: String,
     maxlength: [500, 'Excerpt cannot be more than 500 characters']
@@ -60,7 +68,7 @@ const PageSchema = new mongoose.Schema({
 
 // Create slug from title before saving
 PageSchema.pre('save', async function(next) {
-  if (!this.slug && this.title) {
+  if (!this.slug && this.isModified('title')) {
     let baseSlug = this.title
       .toLowerCase()
       .replace(/[^\w\s]/gi, '')
