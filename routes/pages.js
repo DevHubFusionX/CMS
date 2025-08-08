@@ -3,13 +3,6 @@ const router = express.Router();
 const Page = require('../models/Page');
 const { protect, authorize } = require('../middleware/auth');
 
-// Simple content sanitization
-const sanitizeContent = (content) => {
-  if (!content) return content;
-  // Basic XSS protection - remove script tags
-  return content.replace(/<script[^>]*>.*?<\/script>/gi, '');
-};
-
 // @route   GET /api/pages
 // @desc    Get all published pages
 // @access  Public
@@ -89,11 +82,10 @@ router.get('/slug/:slug', async (req, res) => {
 // @access  Private (Editor+)
 router.post('/', protect, authorize('editor', 'admin', 'super_admin'), async (req, res) => {
   try {
-    req.body.author = req.user.id;
+    console.log('Creating page with data:', req.body);
+    console.log('User:', req.user?.id);
     
-    if (req.body.content) {
-      req.body.content = sanitizeContent(req.body.content);
-    }
+    req.body.author = req.user.id;
 
     const page = await Page.create(req.body);
 
@@ -102,6 +94,7 @@ router.post('/', protect, authorize('editor', 'admin', 'super_admin'), async (re
       data: page
     });
   } catch (err) {
+    console.error('Page creation error:', err);
     res.status(500).json({
       success: false,
       message: err.message || 'Server error'
@@ -114,10 +107,6 @@ router.post('/', protect, authorize('editor', 'admin', 'super_admin'), async (re
 // @access  Private (Editor+)
 router.put('/:id', protect, authorize('editor', 'admin', 'super_admin'), async (req, res) => {
   try {
-    if (req.body.content) {
-      req.body.content = sanitizeContent(req.body.content);
-    }
-
     const page = await Page.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true
