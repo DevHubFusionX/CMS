@@ -30,6 +30,7 @@ const analyticsRoutes = require('./routes/analytics')
 const aiRoutes = require('./routes/ai')
 const sitemapRoutes = require('./routes/sitemap')
 const backupRoutes = require('./routes/backup')
+const pagesRoutes = require('./routes/pages')
 
 // Load environment variables
 dotenv.config()
@@ -216,6 +217,7 @@ app.use('/api/categories', csrfProtection)
 app.use('/api/tags', csrfProtection)
 app.use('/api/comments', csrfProtection)
 app.use('/api/settings', csrfProtection)
+app.use('/api/pages', csrfProtection)
 
 // Request timeout middleware
 app.use((req, res, next) => {
@@ -264,6 +266,7 @@ app.use('/api/analytics', analyticsRoutes)
 app.use('/api/ai', aiRoutes)
 app.use('/', sitemapRoutes)
 app.use('/api/backup', backupRoutes)
+app.use('/api/pages', pagesRoutes)
 
 // Health check endpoint
 app.get('/health', (req, res) => {
