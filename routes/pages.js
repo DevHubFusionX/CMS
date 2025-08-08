@@ -31,10 +31,14 @@ router.get('/', async (req, res) => {
 // @access  Private (Editor+)
 router.get('/all', protect, authorize('editor', 'admin', 'super_admin'), async (req, res) => {
   try {
+    console.log('Fetching all pages...');
     const pages = await Page.find()
       .populate('author', 'name')
       .populate('parentPage', 'title slug')
       .sort({ order: 1, createdAt: -1 });
+
+    console.log('Found pages:', pages.length);
+    console.log('Pages data:', pages);
 
     res.json({
       success: true,
@@ -42,6 +46,7 @@ router.get('/all', protect, authorize('editor', 'admin', 'super_admin'), async (
       data: pages
     });
   } catch (err) {
+    console.error('Error fetching pages:', err);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -106,6 +111,7 @@ router.post('/', protect, authorize('editor', 'admin', 'super_admin'), async (re
     }
 
     const page = await Page.create(req.body);
+    console.log('Page created successfully:', page);
 
     res.status(201).json({
       success: true,
