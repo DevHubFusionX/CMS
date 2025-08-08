@@ -2,24 +2,12 @@ const express = require('express');
 const router = express.Router();
 const Page = require('../models/Page');
 const { protect, authorize } = require('../middleware/auth');
-const sanitizeHtml = require('sanitize-html');
 
-// Sanitize HTML content
+// Simple content sanitization
 const sanitizeContent = (content) => {
-  return sanitizeHtml(content, {
-    allowedTags: [
-      'p', 'br', 'strong', 'em', 'u', 's', 'code', 'pre',
-      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-      'ul', 'ol', 'li', 'blockquote', 'a', 'img',
-      'table', 'thead', 'tbody', 'tr', 'th', 'td',
-      'div', 'span'
-    ],
-    allowedAttributes: {
-      'img': ['src', 'alt', 'title', 'width', 'height', 'loading', 'class'],
-      'a': ['href', 'name', 'target', 'rel', 'class'],
-      '*': ['class', 'id', 'style']
-    }
-  });
+  if (!content) return content;
+  // Basic XSS protection - remove script tags
+  return content.replace(/<script[^>]*>.*?<\/script>/gi, '');
 };
 
 // @route   GET /api/pages
