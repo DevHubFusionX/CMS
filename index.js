@@ -16,6 +16,7 @@ const { initScheduledTasks } = require('./utils/scheduledTasks')
 // Import models to ensure they're registered
 require('./models/Role')
 require('./models/User')
+require('./models/Page')
 
 // Import routes
 const authRoutes = require('./routes/auth')
