@@ -115,7 +115,7 @@ router.put('/:id', protect, authorize('admin', 'editor'), async (req, res) => {
 // @access  Private (Editor and above)
 router.delete('/:id', protect, authorize('editor', 'admin', 'super_admin'), async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const category = await Category.findByIdAndDelete(req.params.id);
 
     if (!category) {
       return res.status(404).json({
@@ -123,8 +123,6 @@ router.delete('/:id', protect, authorize('editor', 'admin', 'super_admin'), asyn
         message: 'Category not found'
       });
     }
-
-    await category.remove();
 
     res.status(200).json({
       success: true,
