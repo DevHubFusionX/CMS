@@ -85,25 +85,13 @@ const handleMulterError = (err, req, res, next) => {
 // @access  Private
 router.post('/', protect, upload.single('file'), handleMulterError, async (req, res) => {
   try {
-    console.log('Media upload route hit');
-    console.log('Request file:', req.file ? 'File received' : 'No file');
-    
     if (!req.file) {
-      console.log('No file in request');
       return res.status(400).json({
         success: false,
         message: 'Please upload a file'
       });
     }
 
-    console.log('File details:', {
-      originalname: req.file.originalname,
-      mimetype: req.file.mimetype,
-      size: req.file.size
-    });
-
-    // Upload to Cloudinary
-    console.log('Starting Cloudinary upload...');
     const cloudinaryResult = await uploadImage(req.file.buffer);
 
     // Create media record
@@ -126,7 +114,6 @@ router.post('/', protect, upload.single('file'), handleMulterError, async (req, 
       data: media
     });
   } catch (err) {
-    console.error('Upload error:', err);
     res.status(500).json({
       success: false,
       message: err.message || 'Server error'
@@ -149,7 +136,6 @@ router.get('/', protect, async (req, res) => {
       data: media
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -176,7 +162,6 @@ router.get('/:id', protect, async (req, res) => {
       data: media
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       success: false,
       message: 'Server error'
@@ -198,17 +183,16 @@ router.delete('/:id', protect, async (req, res) => {
       });
     }
 
-    // Check permissions: uploader, author+, or users with delete_own_media/delete_all_media
     const user = await req.user.populate('role');
     const userRole = user.role?.name || user.legacyRole;
     const hasDeleteAllMedia = user.role?.permissions?.includes('delete_all_media');
     const hasDeleteOwnMedia = user.role?.permissions?.includes('delete_own_media');
     
     const canDelete = 
-      hasDeleteAllMedia || // Admin/Super Admin can delete any media
-      (hasDeleteOwnMedia && media.uploadedBy.toString() === req.user.id) || // Own media with permission
-      media.uploadedBy.toString() === req.user.id || // Own media (fallback)
-      ['admin', 'super_admin'].includes(userRole); // Legacy role check
+      hasDeleteAllMedia ||
+      (hasDeleteOwnMedia && media.uploadedBy.toString() === req.user.id) ||
+      media.uploadedBy.toString() === req.user.id ||
+      ['admin', 'super_admin'].includes(userRole);
     
     if (!canDelete) {
       return res.status(401).json({
@@ -217,12 +201,10 @@ router.delete('/:id', protect, async (req, res) => {
       });
     }
 
-    // Delete from Cloudinary
     if (media.publicId) {
       await deleteImage(media.publicId);
     }
 
-    // Delete from database
     await media.deleteOne();
 
     res.status(200).json({
@@ -230,7 +212,6 @@ router.delete('/:id', protect, async (req, res) => {
       data: {}
     });
   } catch (err) {
-    console.error(err);
     res.status(500).json({
       success: false,
       message: 'Server error'

@@ -463,8 +463,6 @@ router.post('/', protect, authorize('subscriber', 'contributor', 'author', 'edit
     
     // Emit notification to editors when an author creates a post
     const io = req.app.get('io');
-    console.log('📝 Post created by:', userRole, 'User ID:', req.user.id);
-    console.log('🔌 Socket.IO instance available:', !!io);
     
     if (io && ['author', 'contributor'].includes(userRole)) {
       const notificationData = {
@@ -476,13 +474,7 @@ router.post('/', protect, authorize('subscriber', 'contributor', 'author', 'edit
         message: `New post "${post.title}" created by ${post.author.name}`
       };
       
-      console.log('📤 Emitting notification to rooms: editor, admin, super_admin');
-      console.log('📝 Notification data:', notificationData);
-      
       io.to('editor').to('admin').to('super_admin').emit('new_post_created', notificationData);
-      console.log('✅ Notification emitted successfully');
-    } else {
-      console.log('🚫 No notification sent - Role:', userRole, 'IO available:', !!io);
     }
 
     res.status(201).json({
