@@ -25,40 +25,12 @@ const passwordResetLimiter = rateLimit({
 // @desc    Register user (Author and Subscriber only)
 // @access  Public
 router.post('/register', authController.register);
-
-// @route   POST /api/auth/login
-// @desc    Login user
-// @access  Public
 router.post('/login', authLimiter, authController.login);
-
-// @route   GET /api/auth/me
-// @desc    Get current logged in user
-// @access  Private
 router.get('/me', protect, authController.getMe);
-
-// @route   POST /api/auth/logout
-// @desc    Logout user and blacklist token
-// @access  Private
 router.post('/logout', protect, authController.logout);
-
-// @route   POST /api/auth/forgot-password
-// @desc    Forgot password - send reset email
-// @access  Public
 router.post('/forgot-password', passwordResetLimiter, authController.forgotPassword);
-
-// @route   POST /api/auth/reset-password
-// @desc    Reset password
-// @access  Public
 router.post('/reset-password', passwordResetLimiter, authController.resetPassword);
-
-// @route   POST /api/auth/verify-otp
-// @desc    Verify email with OTP
-// @access  Public
 router.post('/verify-otp', authController.verifyOTP);
-
-// @route   POST /api/auth/resend-verification
-// @desc    Resend verification email
-// @access  Public
 router.post('/resend-verification', authController.resendVerification);
 
 module.exports = router;

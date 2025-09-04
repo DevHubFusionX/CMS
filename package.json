@@ -9,10 +9,15 @@
     "seed": "node utils/seeder.js",
     "seed:delete": "node utils/seeder.js -d",
     "seed:roles": "node seedRoles.js",
+    "seed:site-roles": "node seedSiteRoles.js",
+    "migrate:posts": "node migrations/addSiteToExistingPosts.js",
+    "setup:multisite": "node setupMultiSite.js",
     "create:superadmin": "node createSuperAdmin.js",
     "test": "jest --runInBand",
     "test:watch": "jest --watch --runInBand",
-    "setup": "npm run seed:roles && npm run create:superadmin"
+    "setup": "npm run seed:roles && npm run create:superadmin",
+    "setup:full": "npm run seed:roles && npm run seed:site-roles && npm run create:superadmin && npm run setup:multisite",
+    "setup:database": "node setupDatabase.js"
   },
   "keywords": [],
   "author": "",

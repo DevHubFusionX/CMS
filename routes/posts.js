@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const Post = require('../models/Post');
 const User = require('../models/User');
 const { protect, authorize } = require('../middleware/auth');
+const { extractSiteContext, requireSiteAccess } = require('../middleware/siteContext');
 const sanitizeHtml = require('sanitize-html');
 const logger = require('../utils/logger');
 
@@ -43,7 +44,8 @@ router.get('/', authorize('visitor', 'subscriber', 'contributor', 'author', 'edi
       category,
       tag,
       search,
-      language = 'en'
+      language = 'en',
+      siteId
     } = req.query;
     
     // Build query
@@ -51,6 +53,11 @@ router.get('/', authorize('visitor', 'subscriber', 'contributor', 'author', 'edi
       status: 'published',
       language
     };
+    
+    // Add site filter if provided
+    if (siteId) {
+      query.site = siteId;
+    }
     
     // Add category filter if provided
     if (category) {
@@ -421,8 +428,16 @@ router.post('/', protect, authorize('subscriber', 'contributor', 'author', 'edit
       req.body.status = 'draft';
     }
   try {
-    // Add author to req.body
+    // Add author and site to req.body
     req.body.author = req.user.id;
+    
+    // Require site ID for posts
+    if (!req.body.site) {
+      return res.status(400).json({
+        success: false,
+        message: 'Site ID is required'
+      });
+    }
     
     // Sanitize HTML content
     if (req.body.content) {

@@ -1,15 +1,10 @@
 const cloudinary = require('cloudinary').v2;
 
-// Temporary hardcoded configuration for testing
-// REMOVE THIS IN PRODUCTION!
 cloudinary.config({
-  cloud_name: 'degktbk01',
-  api_key: '699773516329615',
-  api_secret: 'a8F60dJh6h9u26WL8c7bWwr6BGE'
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
-
-console.log('🚨 WARNING: Using hardcoded Cloudinary credentials for testing!');
-console.log('✅ Cloudinary configured with hardcoded values');
 
 // Upload image to Cloudinary
 const uploadImage = async (file, folder = 'cms') => {

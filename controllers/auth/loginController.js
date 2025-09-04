@@ -1,5 +1,4 @@
 const User = require('../../models/User')
-const Role = require('../../models/Role')
 const { sendEmail } = require('../../utils/email')
 const { renderEmailVerificationOTP } = require('../../utils/emailTemplates')
 

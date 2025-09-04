@@ -1,5 +1,6 @@
 const User = require('../../models/User')
 const { renderEmailVerificationOTP } = require('../../utils/emailTemplates')
+const { sendEmail } = require('../../utils/email')
 
 // @desc    Verify email with OTP
 // @route   POST /api/auth/verify-otp
@@ -69,7 +70,6 @@ exports.resendVerification = async (req, res) => {
     // Email content using template
     const message = renderEmailVerificationOTP(user.name, otp)
 
-    const { sendEmail } = require('../../utils/email')
     await sendEmail({
       to: user.email,
       subject: 'Your HubFusionx CMS Verification Code',

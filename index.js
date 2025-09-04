@@ -14,8 +14,8 @@ const logger = require('./utils/logger')
 const { initScheduledTasks } = require('./utils/scheduledTasks')
 
 // Import models to ensure they're registered
-require('./models/Role')
-require('./models/User')
+const Role = require('./models/Role')
+const User = require('./models/User')
 
 // Import routes
 const authRoutes = require('./routes/auth')
@@ -31,6 +31,8 @@ const aiRoutes = require('./routes/ai')
 const sitemapRoutes = require('./routes/sitemap')
 const backupRoutes = require('./routes/backup')
 const pagesRoutes = require('./routes/pages')
+const sitesRoutes = require('./routes/sites')
+const subscriptionsRoutes = require('./routes/subscriptions')
 
 // Load environment variables
 dotenv.config()
@@ -217,6 +219,8 @@ app.use('/api/categories', csrfProtection)
 app.use('/api/tags', csrfProtection)
 app.use('/api/comments', csrfProtection)
 app.use('/api/settings', csrfProtection)
+app.use('/api/sites', csrfProtection)
+app.use('/api/subscriptions', csrfProtection)
 
 // Request timeout middleware
 app.use((req, res, next) => {
@@ -266,6 +270,8 @@ app.use('/api/ai', aiRoutes)
 app.use('/', sitemapRoutes)
 app.use('/api/backup', backupRoutes)
 app.use('/api/pages', pagesRoutes)
+app.use('/api/sites', sitesRoutes)
+app.use('/api/subscriptions', subscriptionsRoutes)
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -275,8 +281,6 @@ app.get('/health', (req, res) => {
 // Temporary cleanup endpoint (REMOVE AFTER USE)
 app.get('/cleanup-lms', async (req, res) => {
   try {
-    const User = require('./models/User')
-    const Role = require('./models/Role')
 
     // Update users with student/instructor roles to subscriber
     await User.updateMany(

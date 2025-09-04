@@ -25,8 +25,7 @@ const PostSchema = new mongoose.Schema({
   },
   slug: {
     type: String,
-    required: true,
-    unique: true
+    required: true
   },
   content: {
     type: String,
@@ -46,6 +45,11 @@ const PostSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'published', 'scheduled', 'archived'],
     default: 'draft'
+  },
+  site: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Site',
+    required: true
   },
   author: {
     type: mongoose.Schema.Types.ObjectId,
@@ -154,6 +158,8 @@ PostSchema.pre('save', async function(next) {
 
 // Index for better search performance
 PostSchema.index({ title: 'text', content: 'text', tags: 'text' });
+PostSchema.index({ site: 1, slug: 1 }, { unique: true });
+PostSchema.index({ site: 1, status: 1, publishedAt: -1 });
 
 // Virtual for word count
 PostSchema.virtual('wordCount').get(function() {

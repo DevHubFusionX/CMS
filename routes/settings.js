@@ -5,8 +5,8 @@ const { protect, authorize } = require('../middleware/auth');
 
 // @route   GET /api/settings
 // @desc    Get all settings
-// @access  Public
-router.get('/', async (req, res) => {
+// @access  Private
+router.get('/', protect, async (req, res) => {
   try {
     const settings = await Setting.find();
     
@@ -31,8 +31,8 @@ router.get('/', async (req, res) => {
 
 // @route   GET /api/settings/group/:group
 // @desc    Get settings by group
-// @access  Public
-router.get('/group/:group', async (req, res) => {
+// @access  Private
+router.get('/group/:group', protect, async (req, res) => {
   try {
     const settings = await Setting.find({ group: req.params.group });
     
@@ -63,8 +63,27 @@ router.put('/', protect, authorize('admin'), async (req, res) => {
     const settings = req.body;
     const updatedSettings = [];
 
-    // Update each setting
-    for (const key in settings) {
+    // Validate input and limit iterations to prevent DoS
+    if (typeof settings !== 'object' || settings === null) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid settings data'
+      });
+    }
+
+    const keys = Object.keys(settings);
+    const maxSettings = 50; // Limit to 50 settings per request
+    
+    if (keys.length > maxSettings) {
+      return res.status(400).json({
+        success: false,
+        message: `Too many settings. Maximum ${maxSettings} allowed per request`
+      });
+    }
+
+    // Update each setting with controlled iteration
+    for (let i = 0; i < Math.min(keys.length, maxSettings); i++) {
+      const key = keys[i];
       if (settings.hasOwnProperty(key)) {
         const value = settings[key];
         const group = req.query.group || 'general';

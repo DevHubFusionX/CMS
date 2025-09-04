@@ -1,6 +1,11 @@
 const mongoose = require('mongoose');
 
 const MediaSchema = new mongoose.Schema({
+  site: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Site',
+    required: true
+  },
   name: {
     type: String,
     required: true
@@ -41,5 +46,9 @@ const MediaSchema = new mongoose.Schema({
     default: Date.now
   }
 });
+
+// Index for site-specific media
+MediaSchema.index({ site: 1, uploadedBy: 1 });
+MediaSchema.index({ site: 1, createdAt: -1 });
 
 module.exports = mongoose.model('Media', MediaSchema);

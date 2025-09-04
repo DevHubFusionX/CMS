@@ -35,6 +35,26 @@ const UserSchema = new mongoose.Schema({
     enum: ['subscriber', 'contributor', 'author', 'editor', 'admin', 'super_admin'],
     default: 'subscriber'
   },
+  // Platform-level role (super_admin for platform owner)
+  platformRole: {
+    type: String,
+    enum: ['user', 'super_admin'],
+    default: 'user'
+  },
+  // Sites owned by this user
+  ownedSites: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Site'
+  }],
+  // Sites where user has access (member of)
+  memberSites: [{
+    site: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Site'
+    },
+    role: String,
+    joinedAt: { type: Date, default: Date.now }
+  }],
   avatar: {
     type: String,
     default: ''
@@ -102,6 +122,7 @@ UserSchema.methods.matchPassword = async function(enteredPassword) {
 };
 
 // Generate email verification OTP
+// Note: This method should only be called from properly authorized routes
 UserSchema.methods.generateEmailOTP = function() {
   const otp = Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit OTP
   
