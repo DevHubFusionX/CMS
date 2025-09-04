@@ -9,7 +9,7 @@ const {
   checkSubdomain
 } = require('../controllers/siteController');
 
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -22,7 +22,7 @@ router.use(protect);
 
 router.route('/')
   .get(getUserSites)
-  .post(createSite);
+  .post(authorize('admin', 'super_admin', 'author', 'editor'), createSite);
 
 router.route('/:id')
   .get(getSite)
