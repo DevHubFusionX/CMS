@@ -30,14 +30,24 @@ const SiteSchema = new mongoose.Schema({
     enum: ['blog', 'portfolio', 'business', 'news', 'personal'],
     default: 'blog'
   },
+  template: {
+    type: String,
+    default: 'default'
+  },
   theme: {
     name: { type: String, default: 'default' },
+    colorScheme: { type: String, default: 'default' },
     customizations: {
       primaryColor: { type: String, default: '#3b82f6' },
       secondaryColor: { type: String, default: '#64748b' },
+      accentColor: { type: String, default: '#06b6d4' },
       logo: String,
       favicon: String,
-      customCSS: String
+      customCSS: String,
+      fonts: {
+        heading: { type: String, default: 'Inter' },
+        body: { type: String, default: 'Inter' }
+      }
     }
   },
   settings: {
@@ -49,6 +59,9 @@ const SiteSchema = new mongoose.Schema({
     isPublic: { type: Boolean, default: true },
     allowComments: { type: Boolean, default: true },
     allowSubscriptions: { type: Boolean, default: true },
+    template: String,
+    colorScheme: String,
+    features: [String],
     seo: {
       metaTitle: String,
       metaDescription: String,
@@ -82,11 +95,17 @@ const SiteSchema = new mongoose.Schema({
     totalPages: { type: Number, default: 0 },
     totalViews: { type: Number, default: 0 },
     totalSubscribers: { type: Number, default: 0 },
-    storageUsed: { type: Number, default: 0 } // MB
+    totalUsers: { type: Number, default: 1 },
+    storageUsed: { type: Number, default: 0 }, // MB
+    lastActivity: { type: Date, default: Date.now }
   },
   isActive: {
     type: Boolean,
     default: true
+  },
+  isInitialized: {
+    type: Boolean,
+    default: false
   },
   createdAt: {
     type: Date,

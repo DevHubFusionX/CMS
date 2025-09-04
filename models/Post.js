@@ -41,6 +41,11 @@ const PostSchema = new mongoose.Schema({
   galleryImages: [{
     type: String
   }],
+  type: {
+    type: String,
+    enum: ['post', 'page'],
+    default: 'post'
+  },
   status: {
     type: String,
     enum: ['draft', 'published', 'scheduled', 'archived'],

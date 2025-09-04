@@ -33,6 +33,7 @@ const backupRoutes = require('./routes/backup')
 const pagesRoutes = require('./routes/pages')
 const sitesRoutes = require('./routes/sites')
 const subscriptionsRoutes = require('./routes/subscriptions')
+const templatesRoutes = require('./routes/templates')
 
 // Load environment variables
 dotenv.config()
@@ -272,6 +273,7 @@ app.use('/api/backup', backupRoutes)
 app.use('/api/pages', pagesRoutes)
 app.use('/api/sites', sitesRoutes)
 app.use('/api/subscriptions', subscriptionsRoutes)
+app.use('/api/templates', templatesRoutes)
 
 // Health check endpoint
 app.get('/health', (req, res) => {

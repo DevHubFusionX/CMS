@@ -2,13 +2,15 @@ const Site = require('../models/Site');
 const User = require('../models/User');
 const SiteUser = require('../models/SiteUser');
 const Subscription = require('../models/Subscription');
+const { initializeSite } = require('../utils/siteInitializer');
+const logger = require('../utils/logger');
 
 // @desc    Create new site
 // @route   POST /api/sites
 // @access  Private
 exports.createSite = async (req, res) => {
   try {
-    const { name, subdomain, type, title, tagline } = req.body;
+    const { name, subdomain, type, title, tagline, template, colorScheme, settings } = req.body;
 
     // Check if subdomain is available
     const existingSite = await Site.findOne({ subdomain: subdomain.toLowerCase() });
@@ -19,7 +21,7 @@ exports.createSite = async (req, res) => {
       });
     }
 
-    // Create site
+    // Create site with enhanced data
     const site = await Site.create({
       name,
       subdomain: subdomain.toLowerCase(),
@@ -27,7 +29,10 @@ exports.createSite = async (req, res) => {
       type,
       settings: {
         title,
-        tagline
+        tagline,
+        template: template || 'default',
+        colorScheme: colorScheme || 'default',
+        ...settings
       }
     });
 
@@ -51,11 +56,25 @@ exports.createSite = async (req, res) => {
       $push: { ownedSites: site._id }
     });
 
+    // Initialize site with default content
+    try {
+      await initializeSite(site, req.user.id);
+      logger.info(`Site initialized successfully: ${site.name}`);
+    } catch (initError) {
+      logger.error(`Site initialization failed for ${site.name}:`, initError);
+      // Don't fail the site creation if initialization fails
+    }
+
+    // Populate the site with owner info for response
+    const populatedSite = await Site.findById(site._id).populate('owner', 'name email');
+
     res.status(201).json({
       success: true,
-      data: site
+      data: populatedSite,
+      message: 'Site created successfully! Default content has been added to get you started.'
     });
   } catch (error) {
+    logger.error('Site creation failed:', error);
     res.status(500).json({
       success: false,
       message: error.message
