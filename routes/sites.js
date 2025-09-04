@@ -22,7 +22,7 @@ router.use(protect);
 
 router.route('/')
   .get(getUserSites)
-  .post(authorize('admin', 'super_admin', 'author', 'editor'), createSite);
+  .post(createSite);
 
 router.route('/:id')
   .get(getSite)
