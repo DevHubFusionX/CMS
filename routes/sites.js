@@ -18,15 +18,10 @@ router.get('/check-subdomain/:subdomain', checkSubdomain);
 router.get('/public/:subdomain', getSiteBySubdomain);
 
 // Protected routes
-router.use(protect);
-
-router.route('/')
-  .get(getUserSites)
-  .post(createSite);
-
-router.route('/:id')
-  .get(getSite)
-  .put(updateSite)
-  .delete(deleteSite);
+router.get('/', protect, getUserSites);
+router.post('/', protect, createSite);
+router.get('/:id', protect, getSite);
+router.put('/:id', protect, updateSite);
+router.delete('/:id', protect, deleteSite);
 
 module.exports = router;
