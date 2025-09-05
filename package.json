@@ -4,8 +4,8 @@
   "description": "Backend API for Content Management System",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js",
+    "start": "node init && node index.js",
+    "dev": "node init && nodemon index.js",
     "seed": "node utils/seeder.js",
     "seed:delete": "node utils/seeder.js -d",
     "seed:roles": "node seedRoles.js",
