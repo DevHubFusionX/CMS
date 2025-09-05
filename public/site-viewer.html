@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Site Viewer</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .loading { text-align: center; padding: 50px; }
+        .error { color: red; text-align: center; padding: 50px; }
+        .site-header { border-bottom: 1px solid #eee; padding-bottom: 20px; margin-bottom: 20px; }
+        .site-title { font-size: 2em; margin: 0; }
+        .site-tagline { color: #666; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">Loading site...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="site-content" style="display: none;">
+            <div class="site-header">
+                <h1 class="site-title" id="site-title"></h1>
+                <p class="site-tagline" id="site-tagline"></p>
+            </div>
+            <div id="site-body"></div>
+        </div>
+    </div>
+
+    <script>
+        async function loadSite() {
+            try {
+                const hostname = window.location.hostname;
+                const subdomain = hostname.split('.')[0];
+                
+                if (subdomain === 'www' || hostname.includes('localhost')) {
+                    throw new Error('Invalid subdomain');
+                }
+
+                const response = await fetch(`https://cms-2prb.onrender.com/api/sites/public/${subdomain}`);
+                const data = await response.json();
+
+                if (!data.success) {
+                    throw new Error(data.message || 'Site not found');
+                }
+
+                const site = data.data;
+                
+                document.title = site.settings.title || site.name;
+                document.getElementById('site-title').textContent = site.settings.title || site.name;
+                document.getElementById('site-tagline').textContent = site.settings.tagline || '';
+                document.getElementById('site-body').innerHTML = `
+                    <p>Welcome to ${site.name}!</p>
+                    <p>This is a ${site.type} site.</p>
+                `;
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('site-content').style.display = 'block';
+
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+                document.getElementById('error').textContent = error.message;
+            }
+        }
+
+        loadSite();
+    </script>
+</body>
+</html>

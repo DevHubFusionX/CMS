@@ -241,6 +241,19 @@ app.use((req, res, next) => {
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
+// Serve public sites (catch-all for subdomains)
+app.get('*', (req, res, next) => {
+  const hostname = req.get('host');
+  const subdomain = hostname.split('.')[0];
+  
+  // If it's a subdomain (not main domain), serve the site viewer
+  if (subdomain && subdomain !== 'cms-2prb' && !hostname.includes('localhost')) {
+    return res.sendFile(path.join(__dirname, 'public', 'site-viewer.html'));
+  }
+  
+  next();
+});
+
 // Connect to MongoDB and setup
 const { connectDB, setupIndexes } = require('./utils/database')
 connectDB()
