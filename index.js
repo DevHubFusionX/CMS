@@ -220,7 +220,6 @@ app.use('/api/categories', csrfProtection)
 app.use('/api/tags', csrfProtection)
 app.use('/api/comments', csrfProtection)
 app.use('/api/settings', csrfProtection)
-app.use('/api/sites', csrfProtection)
 app.use('/api/subscriptions', csrfProtection)
 
 // Request timeout middleware
