@@ -29,7 +29,6 @@ router.post('/', async (req, res) => {
     console.log('🚀 Site creation request received');
     console.log('📋 Headers auth:', req.headers.authorization ? 'Present' : 'Missing');
     
-    // Manual auth check
     const jwt = require('jsonwebtoken');
     const User = require('../models/User');
     
@@ -44,8 +43,21 @@ router.post('/', async (req, res) => {
     }
     
     console.log('🔑 Token found, verifying...');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('✅ Token decoded, user ID:', decoded.id);
+    console.log('🔐 JWT_SECRET exists:', !!process.env.JWT_SECRET);
+    console.log('🎯 Token preview:', token.substring(0, 20) + '...');
+    
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+      console.log('✅ Token decoded, user ID:', decoded.id);
+    } catch (jwtError) {
+      console.log('💥 JWT Error:', jwtError.message);
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Invalid token - please login again',
+        error: jwtError.message 
+      });
+    }
     
     const user = await User.findById(decoded.id).populate('role');
     if (!user) {
